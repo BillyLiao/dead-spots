@@ -2,7 +2,7 @@
 
 要繼續開發時先讀這份。這裡記的是**現況、原因、還沒做的事**；每次改了什麼記在 [`CHANGELOG.md`](CHANGELOG.md)。
 
-最後更新：2026-10-05（v0.1.1）
+最後更新：2026-10-05（v0.1.3）
 
 ---
 
@@ -17,7 +17,9 @@
 | 線上 | https://billyliao.github.io/dead-spots/ （GitHub Pages，從 `main` 自動部署） |
 | Repo | https://github.com/BillyLiao/dead-spots （public） |
 | 本機 | `~/Projects/dead-spots/` |
-| Claude 版 | https://claude.ai/artifact/8PdtsLwRPzkCUK8FJj97PM （資料存在 claude.ai 帳號；不會自動跟著 repo 更新，見下方「Claude 版怎麼同步」） |
+| 授權 | MIT（`LICENSE`） |
+
+**主要版本是 GitHub Pages。** 早期的 Claude artifact 版（https://claude.ai/artifact/8PdtsLwRPzkCUK8FJj97PM ）不再維護。裡面如果有資料，用「指型庫 → 備份 → 複製 JSON」匯出，再到 GitHub 版匯入。
 
 ---
 
@@ -105,6 +107,7 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 | 名稱 Dead Spots | dead spot 原本是琴頸上延音特別短的音，拿來比喻盲區。撞名檢查過：Rootless（已有 iOS app）、Chord Dice（多個 GitHub repo）都撞名；Blind Fret 會被誤會成視障用的 app |
 | Icon「斷掉的延音」 | 第一輪（和弦圖、骰子、霧、劃掉的格子）全部否決；第二輪定案，原則是要符合 dead spot 的意思＋ Zine 配色 |
 | 先存 localStorage，不做登入 | 先求能用；跨裝置的需求還不確定 |
+| GitHub Pages 是主要版本 | 兩個版本的資料不互通，同時用會讓指型散在兩邊 |
 | 單一 HTML 檔 | 自己用的小工具，不想維護 build |
 
 ---
@@ -131,11 +134,8 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 
 ---
 
-## Claude 版怎麼同步
+## Claude 版（已停止維護）
 
-Claude 版是另一份檔案（只有頁面內容、沒有 `<head>`），而且資料走 claude.ai 的 db。repo 改完之後如果也要更新 Claude 版：
+2026-10-05 決定以 GitHub Pages 為主要版本。Claude artifact 版停在 v0.1.0 的程式碼，不再同步更新。
 
-1. 把 `index.html` 的 `<title>` 到 `</body>` 之間的內容（`<head>` 裡的 `<title>`、`<link>`、`<style>`，加上 body 內容）抽出來。
-2. 請 Claude 用 Artifact 工具 publish 到 `https://claude.ai/artifact/8PdtsLwRPzkCUK8FJj97PM`。
-
-程式碼本來就兩邊都能跑：有 `window.claude` 就存 claude.ai，沒有就存 localStorage。
+程式碼本身兩邊都能跑：有 `window.claude` 就把資料存在 claude.ai，沒有就存在 localStorage。哪天想恢復 Claude 版，把 `index.html` 的頁面內容（`<title>`、`<style>`、body）抽出來，請 Claude 用 Artifact 工具 publish 到原網址即可。
