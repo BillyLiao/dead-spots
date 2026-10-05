@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-05
+
 ### Added
 - `CLAUDE.md`：給 Claude Code 的工作規則（先讀 NOTES、走 git flow、記 CHANGELOG、不套用上層的製作人簡報）。
 
@@ -48,6 +50,7 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.1.1...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...develop
+[0.1.2]: https://github.com/BillyLiao/dead-spots/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/BillyLiao/dead-spots/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/BillyLiao/dead-spots/releases/tag/v0.1.0
