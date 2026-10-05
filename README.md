@@ -16,7 +16,11 @@ MIT，見 [`LICENSE`](LICENSE)。
 
 ## 開發
 
-單一檔案 `index.html`，直接用瀏覽器開即可。
+直接用瀏覽器開 `index.html` 即可。純邏輯在 `core.js`。
+
+```sh
+npm test   # 需要 Node，不用 npm install
+```
 
 ## 文件
 

@@ -10,5 +10,6 @@
   - 新功能 / 調整：`feature/*` 從 `develop` 開 → `--no-ff` merge 回 `develop`
   - 發佈：`release/x.y.z` 從 `develop` 開 → merge 到 `main` 並打 tag `vx.y.z` → merge 回 `develop`
   - 線上 bug：`hotfix/*` 從 `main` 開 → merge 到 `main`（打 tag）＋ `develop`
+- merge 前跑 `npm test`，要全過。純邏輯放 `core.js` 並補測試；修 bug 先寫會失敗的測試。
 - 在 `CHANGELOG.md` 的 `[Unreleased]` 記一行；架構、決策或待辦有變就更新 `NOTES.md`。
 - push 到 `main` 會自動部署到 GitHub Pages，只有 release / hotfix 才碰 `main`。
