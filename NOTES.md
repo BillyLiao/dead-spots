@@ -40,6 +40,13 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 
 **只有 merge 到 main 才會上線。** develop 上的東西線上看不到。要先看效果，直接用瀏覽器開本機的 `index.html`。
 
+**發 release 後要確認有部署成功。** v0.2.0 推上 main 之後，GitHub Pages 沒有自動觸發部署（原因不明）。檢查方式和手動重新部署：
+
+```sh
+gh api repos/BillyLiao/dead-spots/pages/builds/latest -q '.status+" "+.commit[0:7]'   # commit 要是 main 最新的
+gh api -X POST repos/BillyLiao/dead-spots/pages/builds                                # 沒有的話手動觸發
+```
+
 ---
 
 ## 架構
