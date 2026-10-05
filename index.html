@@ -1,0 +1,902 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Dead Spots 指型練習簿：記錄自己的吉他指型與盲區，擲出 indie / dream pop / trip hop / post-punk / shoegaze 常見的和弦進行。">
+<meta name="theme-color" content="#EFEDE8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23111'/%3E%3Ctext x='32' y='43' font-family='Arial Narrow,Arial,sans-serif' font-weight='700' font-size='30' fill='%23EFEDE8' text-anchor='middle'%3EDS%3C/text%3E%3C/svg%3E">
+<!-- TEMP favicon: final icon not chosen yet -->
+<style>[hidden]{display:none!important}img{max-width:100%}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+<title>Dead Spots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Space+Mono:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one working column — black masthead strip, tabs, then one tool surface per tab. Deliberately single-theme: photocopied paper, black ink, one red. Degrees are told apart by shape and fill so the page still reads in black and white. */
+:root{
+  --paper:#EFEDE8; --paper-2:#E5E2DB; --ink:#111111; --muted:#55524C; --rule:#111111; --faint:#BDB8AE;
+  --red:#E8331F; --gray:#6E6B66;
+  --good:#1E7A44; --warn:#E8331F;
+  --f-display:"Archivo Narrow", "Noto Sans TC", "Arial Narrow", sans-serif;
+  --f-body:"Noto Sans TC", "PingFang TC", system-ui, sans-serif;
+  --f-mono:"Space Mono", ui-monospace, Menlo, monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55;margin:0;
+  background-image:radial-gradient(rgba(17,17,17,.09) .7px,transparent .8px);background-size:5px 5px}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:18px 64px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+/* masthead */
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;padding-bottom:12px;border-bottom:3px solid var(--rule)}
+.brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1;text-transform:uppercase;letter-spacing:.02em;background:var(--ink);color:var(--paper);padding:4px 10px 3px;transform:rotate(-1.5deg)}
+.brand .subt{font-family:var(--f-body);font-weight:700;font-size:15px;letter-spacing:.06em}
+.sync{font:11px var(--f-mono);color:var(--muted);display:inline-flex;align-items:center;gap:6px;text-transform:uppercase}
+.sync i{width:8px;height:8px;background:var(--muted);display:inline-block}
+.sync.db i{background:var(--good)} .sync.err i{background:var(--red)}
+nav.tabs{display:flex;gap:0;border:2px solid var(--ink)}
+nav.tabs button{border:0;border-right:2px solid var(--ink);background:var(--paper);padding:6px 14px;font-family:var(--f-display);font-weight:700;font-size:15px;text-transform:uppercase;letter-spacing:.03em}
+nav.tabs button:last-child{border-right:0}
+nav.tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper)}
+
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;margin:12px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{width:18px;height:18px;border-radius:50%;display:inline-grid;place-items:center;font:700 9px var(--f-mono)}
+/* degree encoding — shared by SVG circles (fill/stroke) and HTML dots (background/border) */
+.fam-r{fill:var(--ink);background:var(--ink);color:var(--paper)}
+.fam-t{fill:var(--red);background:var(--red);color:var(--ink)}
+.fam-f{fill:var(--paper);background:var(--paper);color:var(--ink);stroke:var(--ink);stroke-width:1.6;box-shadow:inset 0 0 0 1.6px var(--ink)}
+.fam-s{fill:var(--gray);background:var(--gray);color:var(--paper)}
+.fam-x{fill:var(--paper);background:var(--paper);color:var(--ink);stroke:var(--ink);stroke-width:1.6;stroke-dasharray:2.4 1.8;outline:1.6px dashed var(--ink);outline-offset:-1.6px}
+svg .fam-r,svg .fam-t,svg .fam-s{stroke:none}
+
+section.panel{margin-top:22px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.chip{border:2px solid var(--ink);background:var(--paper);padding:3px 10px;font:700 13px var(--f-display);text-transform:uppercase;letter-spacing:.03em}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.btn{border:2px solid var(--ink);background:var(--paper);padding:6px 12px;font:700 14px var(--f-display);text-transform:uppercase;letter-spacing:.03em;box-shadow:3px 3px 0 var(--ink)}
+.btn:hover{background:var(--paper-2)}
+.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.btn:disabled{opacity:.4;box-shadow:none;cursor:not-allowed}
+.btn.primary{background:var(--red)}
+.btn.small{padding:2px 8px;font-size:12.5px;box-shadow:2px 2px 0 var(--ink)}
+.btn.ghost{box-shadow:none;border-width:1.5px}
+.btn.ghost:active{transform:none}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.label{font:700 12px var(--f-display);letter-spacing:.1em;text-transform:uppercase}
+.hint{font-size:12.5px;color:var(--muted)}
+
+/* dice */
+.dice-head{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end}
+.rollbtn{font:700 24px var(--f-display);text-transform:uppercase;letter-spacing:.04em;padding:10px 22px;border:3px solid var(--ink);background:var(--red);color:var(--ink);display:inline-flex;align-items:center;gap:10px;box-shadow:5px 5px 0 var(--ink)}
+.rollbtn:active{transform:translate(3px,3px);box-shadow:2px 2px 0 var(--ink)}
+.rollbtn svg{width:24px;height:24px}
+.rolling .rollbtn svg{animation:spin .5s steps(6)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:3px solid var(--ink);margin-top:18px;background:var(--paper)}
+.fact{padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0;border-right:2px solid var(--ink)}
+.fact:last-child{border-right:0}
+.fact .v{font:700 34px/1.05 var(--f-display);text-transform:uppercase;letter-spacing:-.005em}
+.fact .v.mono{font-family:var(--f-mono);font-weight:700;letter-spacing:-.03em}
+.fact .sub{font:11.5px var(--f-mono);text-transform:uppercase}
+.fact .lk{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.lock{border:0;background:none;padding:2px;line-height:0;opacity:.45}
+.lock[aria-pressed="true"]{opacity:1;color:var(--red)}
+.lock svg{width:15px;height:15px}
+.prog{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+.prog.n2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.prog.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.prog.n5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.ccard{background:var(--paper);border:2px solid var(--ink);padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.ccard.now{background:var(--ink);color:var(--paper)}
+.ccard.now .rn,.ccard.now .vinfo{color:var(--paper)}
+.ccard.now svg.dg{background:var(--paper);outline:4px solid var(--paper)}
+.ccard .rn{font:12px var(--f-mono);align-self:flex-start}
+.ccard .nm{font:700 30px/1.05 var(--f-display);text-align:center;text-transform:uppercase}
+.ccard .vinfo{font-size:12px;color:var(--muted);text-align:center;min-height:2.6em}
+.ccard .vinfo em{font-style:normal;background:var(--red);color:var(--ink);padding:0 3px}
+.ccard .none{font-size:13px;color:var(--muted);text-align:center;padding:24px 4px}
+.ccard svg.dg{width:100%;max-width:150px;height:auto}
+.playbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:16px;padding:8px 10px;border:2px solid var(--ink);background:var(--paper)}
+.beats{display:flex;gap:6px}
+.beats i{width:14px;height:14px;border:2px solid var(--ink);display:block}
+.beats i.on{background:var(--ink)} .beats i.on.acc{background:var(--red)}
+.feel{margin-top:12px;font-size:14px;max-width:65ch}
+
+/* drill */
+.drill{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;margin-top:16px}
+.card-stage{background:var(--paper);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);padding:20px;display:flex;flex-direction:column;gap:14px;min-height:420px}
+.prompt-q{font:12px var(--f-mono);text-transform:uppercase;color:var(--muted)}
+.prompt-big{font:700 clamp(48px,9vw,80px)/.95 var(--f-display);text-transform:uppercase;letter-spacing:-.01em}
+.prompt-big small{font:400 .3em var(--f-body);letter-spacing:0;margin-left:10px;text-transform:none;color:var(--muted)}
+.facts-inline{display:flex;flex-wrap:wrap;gap:6px}
+.facts-inline span{border:1.5px solid var(--ink);padding:1px 8px;font-size:13px}
+.stage-body{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:center;flex:1}
+.stage-body svg.dg{width:200px;max-width:100%;height:auto}
+.reveal-meta{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:340px}
+.reveal-meta .nm{font:700 34px/1 var(--f-display);text-transform:uppercase}
+.grade{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grade .btn{min-width:110px}
+.btn.ok{background:var(--paper)} .btn.bad{background:var(--red)}
+kbd{font:10.5px var(--f-mono);border:1px solid currentColor;padding:0 4px;margin-left:6px;opacity:.7}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.side .box{border:2px solid var(--ink);background:var(--paper);padding:12px;display:flex;flex-direction:column;gap:10px}
+.seg{display:flex;border:2px solid var(--ink)}
+.seg button{flex:1;border:0;border-right:2px solid var(--ink);background:var(--paper);padding:5px 4px;font-size:13px;font-weight:700}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+label.tog{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;cursor:pointer}
+label.tog input{accent-color:var(--ink);width:16px;height:16px}
+.statline{display:flex;justify-content:space-between;font-size:13.5px;border-bottom:1px dashed var(--faint);padding-bottom:2px}
+.statline b{font-family:var(--f-mono)}
+
+/* library */
+.libbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:16px}
+select{font:inherit;font-size:13px;padding:4px 8px;border:2px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink)}
+.libgroup{margin-top:24px}
+.libgroup h2{font:700 24px var(--f-display);text-transform:uppercase;display:flex;align-items:baseline;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:2px}
+.libgroup h2 .count{font:13px var(--f-mono)}
+.libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px;margin-top:12px}
+.lcard{background:var(--paper);border:2px solid var(--ink);padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lcard.blind{box-shadow:5px 5px 0 var(--red)}
+.lcard svg.dg{width:100%;max-width:130px;height:auto;align-self:center}
+.lcard .q{font:700 19px/1.15 var(--f-display);text-transform:uppercase}
+.lcard .meta{font-size:12px;color:var(--muted);line-height:1.4}
+.lcard .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
+.tag{font-size:11px;padding:0 6px;background:var(--red);align-self:flex-start}
+.tag.sug{background:transparent;border:1.5px dashed var(--ink)}
+.empty{border:2px dashed var(--ink);padding:20px;font-size:14px;margin-top:10px;background:var(--paper)}
+.backup{margin-top:30px;padding-top:14px;border-top:3px solid var(--ink);display:flex;flex-direction:column;gap:8px}
+textarea{font:12px/1.4 var(--f-mono);width:100%;min-height:90px;border:2px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);padding:8px}
+
+/* editor */
+.overlay{position:fixed;inset:0;background:rgba(239,237,232,.82);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;z-index:20;padding:24px 16px}
+.editor{background:var(--paper);border:3px solid var(--ink);box-shadow:8px 8px 0 var(--ink);width:100%;max-width:760px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.editor h2{font:700 26px var(--f-display);text-transform:uppercase}
+.ed-cols{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px}
+.fb{display:grid;grid-template-columns:28px repeat(6,40px);gap:0;user-select:none}
+.fb .hd{height:30px;display:grid;place-items:center}
+.fb .hd button{width:28px;height:24px;border:1.5px solid var(--ink);background:var(--paper);font:700 12px var(--f-mono)}
+.fb .hd button.open{background:var(--ink);color:var(--paper)}
+.fb .fn{height:44px;display:grid;place-items:center;font:12px var(--f-mono)}
+.fb .cell{height:44px;position:relative;border:0;background:none;padding:0}
+.fb .cell::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1.5px;background:var(--ink);transform:translateX(-50%)}
+.fb .cell::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--ink);opacity:.4}
+.fb .cell.c0::after{left:50%} .fb .cell.c5::after{right:50%}
+.fb .cell .dot{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;display:grid;place-items:center;font:700 11px var(--f-mono);z-index:1}
+.fb .cell .dot.pending{background:var(--ink)}
+.fb .cell:hover .ghost{opacity:.3}
+.fb .cell .ghost{position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--ink);opacity:0}
+.fb .nutline{grid-column:2 / span 6;height:5px;background:var(--ink);margin:0 20px}
+.fb .strlab{height:20px;display:grid;place-items:center;font:11px var(--f-mono)}
+.ed-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.field{display:flex;flex-direction:column;gap:4px}
+.field input[type=text],.field textarea{font:inherit;font-size:14px;padding:6px 9px;border:2px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);min-height:0}
+.detect{border:2px solid var(--ink);padding:10px 12px;font-size:14px}
+.detect .big{font:700 24px var(--f-display);text-transform:uppercase}
+.ed-acts{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) rotate(-1deg);background:var(--ink);color:var(--paper);padding:6px 14px;font:700 14px var(--f-display);text-transform:uppercase;letter-spacing:.04em;z-index:30}
+
+svg.dg text{font-family:var(--f-mono)}
+svg.dg .str{stroke:var(--ink);stroke-width:1.3}
+svg.dg .frt{stroke:var(--ink);stroke-opacity:.35;stroke-width:1.2}
+svg.dg .nut{stroke:var(--ink);stroke-width:5}
+svg.dg .fno{fill:var(--ink);font-size:9px;font-weight:700}
+svg.dg .mk{fill:var(--ink);font-size:10px}
+svg.dg .lbl{font-size:8.5px;font-weight:700;fill:var(--ink)}
+svg.dg .lbl.lf-r,svg.dg .lbl.lf-s{fill:var(--paper)}
+svg.dg .neutral{fill:var(--ink)}
+svg.dg .ring{stroke-width:2}
+svg.dg .ring.fam-r{fill:var(--ink)} svg.dg .ring.fam-t{fill:var(--red)} svg.dg .ring.fam-s{fill:var(--gray)}
+svg.dg .ring.neutral{stroke:var(--ink);fill:none}
+svg.dg .rlbl{font-size:7.5px;font-weight:700;fill:var(--ink)}
+svg.dg .rlbl.lf-r,svg.dg .rlbl.lf-s{fill:var(--paper)}
+
+@media (max-width:760px){
+  .facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fact:nth-child(2){border-right:0} .fact:nth-child(-n+2){border-bottom:2px solid var(--ink)}
+  .prog,.prog.n3,.prog.n5{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .drill{grid-template-columns:minmax(0,1fr)}
+  .ed-cols{grid-template-columns:minmax(0,1fr)}
+  .fb{justify-self:center}
+  .dice-head{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:420px){ .fb{grid-template-columns:24px repeat(6,36px)} .ccard .nm{font-size:24px} .brand h1{font-size:26px} }
+@media (prefers-reduced-motion:reduce){ .rolling .rollbtn svg{animation:none} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Dead Spots</h1><span class="subt">指型練習簿</span>
+      <span class="sync" id="sync"><i></i><span>本機暫存</span></span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-tab="dice" aria-selected="true">擲骰子</button>
+      <button role="tab" data-tab="drill" aria-selected="false">盲區練習</button>
+      <button role="tab" data-tab="lib" aria-selected="false">指型庫</button>
+    </nav>
+  </header>
+  <div class="legend" aria-label="音級顏色">
+    <span><b class="fam-r">1</b>根音（實心黑）</span>
+    <span><b class="fam-t">3</b>三度（紅）</span>
+    <span><b class="fam-f">5</b>五度（空心）</span>
+    <span><b class="fam-s">7</b>七度（灰）</span>
+    <span><b class="fam-x">9</b>延伸音 9 / 11 / 6（虛線）</span>
+  </div>
+
+  <section class="panel" id="tab-dice"></section>
+  <section class="panel" id="tab-drill" hidden></section>
+  <section class="panel" id="tab-lib" hidden></section>
+</div>
+<div id="overlay-root"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ============ music core ============ */
+const OPEN=[40,45,50,55,59,64]; // 6弦→1弦 (E A D G B e)
+const LETTERS=['C','D','E','F','G','A','B'], NAT=[0,2,4,5,7,9,11], MAJ=[0,2,4,5,7,9,11];
+const PCNAME=['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+const mod=(n,m)=>((n%m)+m)%m;
+function spell(L,pc){let a=mod(pc-NAT[L],12);if(a>6)a-=12;return LETTERS[L]+(a>0?'♯'.repeat(a):'♭'.repeat(-a));}
+function parseKey(s){const L=LETTERS.indexOf(s[0]);let a=0;for(const c of s.slice(1)){if(c==='#')a++;if(c==='b')a--;}return{L,pc:mod(NAT[L]+a,12)};}
+
+const QD={maj:'',m:'m',maj7:'maj7',m7:'m7','7':'7',mMaj7:'m(maj7)',add9:'add9',madd9:'m(add9)','9':'9',m9:'m9',maj9:'maj9','6':'6',m6:'m6','69':'6/9',m11:'m11',m7b5:'m7♭5',dim:'°',dim7:'°7',aug:'+','5':'5',sus2:'sus2',sus4:'sus4','7sus4':'7sus4','maj7#11':'maj7♯11',add11:'add11',madd11:'m(add11)',maj7no3:'maj7(no3)','7no3':'7(no3)',root:'單音'};
+const qLabel=q=>q==null?'未辨識':q==='maj'?'maj':QD[q];
+const QTABLE={'4':'maj','3':'m','4,11':'maj7','3,10':'m7','4,10':'7','3,11':'mMaj7','2,4':'add9','2,3':'madd9','2':'sus2','5':'sus4','5,10':'7sus4','2,4,11':'maj9','2,3,10':'m9','2,4,10':'9','4,9':'6','3,9':'m6','2,4,9':'69','3,6':'dim','3,6,10':'m7b5','3,6,9':'dim7','4,8':'aug','4,6,11':'maj7#11','2,4,6,11':'maj7#11','3,5,10':'m11','2,3,5,10':'m11','4,5':'add11','3,5':'madd11','11':'maj7no3','2,11':'maj7no3','10':'7no3'};
+const QUAL_OPTIONS=['maj','m','maj7','m7','7','mMaj7','add9','madd9','9','m9','maj9','6','m6','69','m11','m7b5','dim','dim7','aug','5','sus2','sus4','7sus4','maj7#11','add11','madd11'];
+
+function rootMidi(f,r){return OPEN[r]+f[r];}
+function rels(f,r){const rm=rootMidi(f,r);return f.map((x,i)=>x<0?null:mod(OPEN[i]+x-rm,12));}
+function relSet(f,r){return new Set(rels(f,r).filter(x=>x!=null));}
+function detectQ(f,r){
+  if(r==null||f[r]<0)return null;
+  const s=relSet(f,r);const has5=s.has(7);s.delete(7);s.delete(0);
+  const k=[...s].sort((a,b)=>a-b).join(',');
+  if(k==='')return has5?'5':'root';
+  return QTABLE[k]||null;
+}
+function fam(rel,set){
+  if(rel===0)return'r';if(rel===3||rel===4)return't';if(rel===7)return'f';
+  if(rel===6)return(set.has(7)||(set.has(11)&&set.has(4)))?'x':'f';
+  if(rel===8)return set.has(7)?'x':'f';
+  if(rel===10||rel===11)return's';
+  if(rel===9&&set.has(3)&&set.has(6)&&!set.has(7))return's';
+  return'x';
+}
+function degLabel(rel,set){
+  const has3=set.has(3)||set.has(4);
+  switch(rel){case 0:return'1';case 1:return'♭9';case 2:return has3?'9':'2';case 3:return'♭3';case 4:return'3';
+  case 5:return has3?'11':'4';case 6:return(set.has(7)||(set.has(11)&&set.has(4)))?'♯11':'♭5';case 7:return'5';case 8:return set.has(7)?'♭13':'♯5';
+  case 9:return(set.has(3)&&set.has(6)&&!set.has(7))?'°7':'6';case 10:return'♭7';case 11:return'7';}
+}
+function bassIdx(f){return f.findIndex(x=>x>=0);}
+function topIdx(f){for(let i=5;i>=0;i--)if(f[i]>=0)return i;return -1;}
+function invName(rel){if(rel===0)return'原位';if(rel===3||rel===4)return'第一轉位';if(rel===6||rel===7||rel===8)return'第二轉位';if(rel===10||rel===11)return'第三轉位';return'其他低音';}
+function invCode(rel){if(rel===0)return'1';if(rel===3||rel===4)return'3';if(rel>=6&&rel<=8)return'5';if(rel===10||rel===11)return'7';return'x';}
+const strNo=i=>6-i;
+const fretted=f=>f.filter(x=>x>0);
+const hasOpen=f=>f.some(x=>x===0);
+function centerOf(f){const fr=fretted(f);return fr.length?fr.reduce((a,b)=>a+b,0)/fr.length:1.5;}
+function placements(sh,pc){
+  const f=sh.frets,base=mod(pc-rootMidi(f,sh.root),12);
+  if(hasOpen(f))return base===0?[0]:[];
+  const fr=fretted(f);if(!fr.length)return[];
+  const lo=Math.min(...fr),hi=Math.max(...fr),out=[];
+  for(let d=base-24;d<=24;d+=12)if(lo+d>=1&&hi+d<=17)out.push(d);
+  return out;
+}
+const shifted=(f,d)=>f.map(x=>x>0?x+d:x);
+const REL_STEP=[0,1,1,2,2,3,4,4,5,5,6,6];
+function noteNameRel(rootL,rootPc,rel){return spell(mod(rootL+REL_STEP[rel],7),mod(rootPc+rel,12));}
+
+/* ============ builtin shapes ============ */
+const BUILTIN_RAW=[
+ ['b-maj-e','E 型封閉',[1,3,3,2,1,1],0],['b-maj-a','A 型封閉',[-1,1,3,3,3,1],1],
+ ['b-maj-gbe0','高三弦',[-1,-1,-1,5,5,3],3],['b-maj-gbe1','高三弦',[-1,-1,-1,9,8,8],5],['b-maj-gbe2','高三弦',[-1,-1,-1,5,6,5],4],
+ ['b-maj-dgb0','中三弦',[-1,-1,5,4,3,-1],2],['b-maj-dgb1','中三弦',[-1,-1,9,7,8,-1],4],['b-maj-dgb2','中三弦',[-1,-1,5,5,5,-1],3],
+ ['b-m-e','E 型封閉',[1,3,3,1,1,1],0],['b-m-a','A 型封閉',[-1,1,3,3,2,1],1],
+ ['b-m-gbe0','高三弦',[-1,-1,-1,5,4,3],3],['b-m-gbe1','高三弦',[-1,-1,-1,8,8,8],5],['b-m-gbe2','高三弦',[-1,-1,-1,5,6,4],4],
+ ['b-m-dgb0','中三弦',[-1,-1,5,3,3,-1],2],
+ ['b-maj7-e','E 根 drop',[1,-1,2,2,1,-1],0],['b-maj7-a','A 型封閉',[-1,1,3,2,3,1],1],['b-maj7-ash','Shell',[-1,3,-1,4,5,-1],1],['b-maj7-d','D 根',[-1,-1,5,7,7,7],2],
+ ['b-m7-e','E 型封閉',[1,3,1,1,1,1],0],['b-m7-a','A 型封閉',[-1,1,3,1,2,1],1],['b-m7-esh','Shell',[1,-1,1,1,-1,-1],0],['b-m7-ash','Shell',[-1,3,-1,3,4,-1],1],
+ ['b-7-e','E 型封閉',[1,3,1,2,1,1],0],['b-7-a','A 型封閉',[-1,1,3,1,3,1],1],['b-7-esh','Shell',[1,-1,1,2,-1,-1],0],
+ ['b-m9-a','A 根',[-1,3,1,3,3,-1],1],['b-maj9-a','A 根',[-1,3,2,4,3,-1],1],
+ ['b-sus2-a','A 型',[-1,3,5,5,3,3],1],['b-sus4-a','A 型',[-1,1,3,3,4,1],1],['b-add9-d','D 根',[-1,-1,5,4,3,5],2],
+ ['b-m6-a','A 根',[-1,3,1,2,1,-1],1],['b-m7b5-a','A 根',[-1,3,4,3,4,-1],1],['b-mmaj7-a','A 型',[-1,3,5,4,4,3],1],
+ ['b-5-e','Power',[1,3,3,-1,-1,-1],0],['b-5-a','Power',[-1,1,3,3,-1,-1],1],
+ ['b-o-cadd9','開放弦',[-1,3,2,0,3,3],1],['b-o-fmaj7s11','開放弦',[1,-1,2,2,0,0],0],['b-o-asus2','開放弦',[-1,0,2,2,0,0],1],
+ ['b-o-em7','開放弦',[0,2,2,0,3,3],0],['b-o-amaj7','開放弦',[-1,0,2,1,2,0],1],
+];
+const BUILTIN=BUILTIN_RAW.map(([id,tag,frets,root])=>({id,name:'',tag,frets,root,src:'builtin',fixedQ:''}));
+
+/* ============ progressions ============ */
+const STYLES=[['indie','indie'],['dream','dream pop'],['triphop','trip hop'],['postpunk','post-punk'],['shoegaze','shoegaze']];
+const STYLE_BPM={indie:[116,20],dream:[90,18],triphop:[84,11],postpunk:[140,18],shoegaze:[104,26]};
+const PROGS=[
+ ['I V vi IV',5,'indie dream','大調','最安全的四和弦。換成你庫裡少用的轉位就不無聊。'],
+ ['vi IV I V',4,'indie','大調','從 vi 開始，聽起來偏小調但會往上走。'],
+ ['I iii vi IV',3,'indie dream','大調','iii 讓 I 跟 vi 之間有一層霧。'],
+ ['IV I V vi',3,'indie','大調','從下屬開始，像句子沒有主詞。'],
+ ['I V/3 vi IV',2,'indie dream','大調','V 用第一轉位，低音一路往下走。'],
+ ['Imaj7 IVmaj7',5,'dream indie','大調','兩和弦漂浮。重點在右手跟音色，不在和聲。'],
+ ['Imaj7 iii7 vi7 IVmaj7',3,'dream','大調','全部都是七和弦，降低每個和弦的「答案感」。'],
+ ['I iii IV iv',4,'dream indie shoegaze','大調・借用 iv','最後的 iv 是小調借來的，那一下的失落感就是重點。'],
+ ['I IV iv I',3,'shoegaze dream','大調・借用 iv','IV → iv 只動一個音（3 降成 ♭3）。'],
+ ['I bVII IV I',4,'shoegaze indie','Mixolydian','♭VII 讓大調不那麼亮。'],
+ ['I bVI bVII I',3,'shoegaze','大調・借用','♭VI ♭VII 從小調借，衝回 I 會很寬。'],
+ ['I III vi IV',2,'shoegaze dream','大調・半音中音','III 是大三和弦，不在調內，製造一瞬間的偏移。'],
+ ['Iadd9 IVadd9',4,'shoegaze dream','大調','加九音保持空心，適合大量 reverb / fuzz 底下的和聲。'],
+ ['Imaj7 II',3,'dream','Lydian','II 是大三和弦，帶出 ♯4 的懸浮感。'],
+ ['IVmaj7 iii7 ii7 Imaj7',2,'dream','大調','一路往下的七和弦，沒有 V 的拉力。'],
+ ['Isus2 vi7 IVmaj7 iv6',2,'dream shoegaze','大調・借用 iv','開頭不給三音，結尾的 iv6 是小調色彩。'],
+ ['i bVII bVI bVII',4,'postpunk shoegaze','Aeolian','小調循環，不回到 V。'],
+ ['i bVI bIII bVII',5,'postpunk indie','Aeolian','很常見的小調四和弦，低音大跳。'],
+ ['i iv',3,'postpunk triphop','小調','兩和弦。留空間給貝斯線。'],
+ ['i bIII bVII IV',3,'postpunk indie','Dorian','最後的 IV 是大三和弦，Dorian 的亮點。'],
+ ['i bII',2,'postpunk triphop','Phrygian','半音往上再回來，很緊。'],
+ ['i5 bVI5 bIII5 bVII5',3,'postpunk shoegaze','Aeolian','Power chord 版本。注意悶音跟下撥的一致性。'],
+ ['i IV',3,'postpunk triphop','Dorian','小調 i 對大調 IV，冷裡帶一點光。'],
+ ['i v bVI bVII',2,'postpunk','Aeolian','v 是小三和弦，沒有導音，不會被拉回去。'],
+ ['i7 iv7',4,'triphop','小調','慢、重、留白。m7 的 shell 指型很好用。'],
+ ['i9 bVImaj7',4,'triphop dream','Aeolian','兩個都是延伸和弦，音色比和聲重要。'],
+ ['i bVI V',3,'triphop','和聲小調','V 是大三和弦（和聲小調），有電影感的張力。'],
+ ['i imaj7 i7 i6',3,'triphop dream','小調・Line cliché','只有一個聲部半音往下走，其他不動。'],
+ ['i7 bIImaj7',2,'triphop','Phrygian','暗、靠近、有點不安。'],
+ ['i7 IV7',3,'triphop','Dorian','IV7 是屬七和弦，帶一點 soul。'],
+ ['i7 bVImaj7 bIIImaj7 bVII',2,'triphop dream','Aeolian','小調配大七和弦，冷暖並存。'],
+ ['iv7 i7 bVImaj7 V7',2,'triphop','和聲小調','從 iv 開始，最後被 V7 拉回去。'],
+ ['iadd9 bVImaj7',3,'shoegaze dream','小調','小調加九音，比 m7 更模糊。'],
+].map(([ch,w,st,mode,feel])=>({ch:ch.split(' '),w,st:st.split(' '),mode,feel,minor:ch[0]==='i'}));
+const MAJOR_KEYS=[['E',10],['A',10],['D',9],['G',9],['C',7],['B',5],['F',4],['F#',3],['Bb',3],['Eb',3],['Ab',2],['Db',2]];
+const MINOR_KEYS=[['E',10],['A',10],['B',7],['D',7],['F#',6],['C#',5],['G',5],['C',4],['F',3],['G#',2],['Bb',2],['Eb',2]];
+const NUMS=['I','II','III','IV','V','VI','VII'];
+const QMAP_L={'':'m','7':'m7','maj7':'mMaj7','add9':'madd9','9':'m9','6':'m6','11':'m11','ø7':'m7b5','°':'dim','5':'5','sus2':'sus2','sus4':'sus4'};
+const QMAP_U={'':'maj','7':'7','maj7':'maj7','add9':'add9','9':'9','maj9':'maj9','6':'6','maj7#11':'maj7#11','5':'5','sus2':'sus2','sus4':'sus4','6/9':'69'};
+function parseRoman(tok){
+  const m=tok.match(/^([b#]?)(VII|VI|V|IV|III|II|I|vii|vi|v|iv|iii|ii|i)(.*)$/);
+  let[,acc,num,suf]=m;let inv=null;const sl=suf.indexOf('/');if(sl>=0){inv=suf.slice(sl+1);suf=suf.slice(0,sl);}
+  const lower=num!==num.toUpperCase(),step=NUMS.indexOf(num.toUpperCase());
+  const semi=mod(MAJ[step]+(acc==='b'?-1:acc==='#'?1:0),12);
+  const q=(lower?QMAP_L:QMAP_U)[suf]??(lower?'m':'maj');
+  return{tok,step,semi,q,inv};
+}
+const prettyRn=t=>t.replace(/^b/,'♭').replace(/^#/,'♯').replace('#','♯');
+const COMPAT={maj:['maj','add9','sus2','69','6','maj7','5'],m:['m','madd9','m7','m11','5'],maj7:['maj7','maj9','maj7#11','maj7no3','maj'],m7:['m7','m9','m11','m'],'7':['7','9','7sus4','7no3','maj'],mMaj7:['mMaj7','m'],add9:['add9','sus2','maj9','maj'],madd9:['madd9','m9','m'],'9':['9','7'],m9:['m9','m7','madd9','m11'],maj9:['maj9','maj7','add9'],'6':['6','69','maj'],m6:['m6','m'],m11:['m11','m7','m9'],m7b5:['m7b5','dim'],dim:['dim','m7b5','dim7'],'5':['5','maj','m'],sus2:['sus2','add9'],sus4:['sus4','7sus4','maj'],'maj7#11':['maj7#11','maj7','maj9'],'69':['69','6','add9']};
+
+/* ============ state & storage ============ */
+let S={chords:[],flags:{},stats:{}};
+const LS_DATA='chordnb.data.v1',LS_UI='chordnb.ui.v1';
+let ui={tab:'dice',styles:STYLES.map(s=>s[0]),locks:{key:false,bpm:false,prog:false},barsMode:'auto',
+  p:{mode:'mix',onlyBlind:false,builtin:true,randomRoot:true},libFilter:'all',libQ:''};
+let roll=null, card=null, revealed=false, recent=[], sessionDone=0, sessionHard=0, editing=null, pendingDelete=null;
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+(function(){const u=lsGet(LS_UI);if(u)ui={...ui,...u,locks:{...ui.locks,...(u.locks||{})},p:{...ui.p,...(u.p||{})}};
+  const d=lsGet(LS_DATA);if(d)S={chords:d.chords||[],flags:d.flags||{},stats:d.stats||{}};})();
+const saveUi=()=>lsSet(LS_UI,ui);
+function requestPersist(){try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});}catch(e){}}
+
+let mode='local',libRef=null,statRef=null,lastLib='',lastStat='',dirty={lib:false,stats:false},saveTimer=null,flushing=false;
+function setSync(kind,text){const el=document.getElementById('sync');el.className='sync '+kind;el.querySelector('span').textContent=text;}
+function queueSave(kind){dirty[kind]=true;lsSet(LS_DATA,S);clearTimeout(saveTimer);saveTimer=setTimeout(flush,700);}
+async function flush(){
+  if(mode!=='db'){dirty.lib=dirty.stats=false;return;}
+  if(flushing){saveTimer=setTimeout(flush,400);return;}
+  flushing=true;
+  try{
+    if(dirty.lib){dirty.lib=false;lastLib=JSON.stringify({c:S.chords,f:S.flags});await libRef.set({chords:S.chords,flags:S.flags,v:1});}
+    if(dirty.stats){dirty.stats=false;lastStat=JSON.stringify(S.stats);await statRef.set({s:S.stats,v:1});}
+    setSync('db','已同步到你的帳號');
+  }catch(e){setSync('err',e&&e.code==='quota_exceeded'?'空間已滿，請刪掉一些指型':'同步失敗，資料先存在本機');}
+  finally{flushing=false;}
+}
+async function initStore(){
+  setSync('','存在這個瀏覽器');requestPersist();
+  if(!window.claude||!window.claude.use)return;
+  try{
+    const[db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+    if(!db||!user)return;
+    const id=await user.id();if(!id)return;
+    libRef=db.doc('data/users/'+id+'/library');statRef=db.doc('data/users/'+id+'/stats');
+    mode='db';setSync('db','連線中…');
+    libRef.onSnapshot(snap=>{
+      if(snap.metadata.hasPendingWrites||dirty.lib)return;
+      if(!snap.exists){if(S.chords.length||Object.keys(S.flags).length)queueSave('lib');setSync('db','已同步到你的帳號');return;}
+      const d=snap.data(),j=JSON.stringify({c:d.chords||[],f:d.flags||{}});
+      setSync('db','已同步到你的帳號');
+      if(j===lastLib)return;lastLib=j;
+      S.chords=JSON.parse(JSON.stringify(d.chords||[]));S.flags=JSON.parse(JSON.stringify(d.flags||{}));
+      lsSet(LS_DATA,S);renderAll();
+    },()=>setSync('err','同步中斷，資料先存在本機'));
+    statRef.onSnapshot(snap=>{
+      if(snap.metadata.hasPendingWrites||dirty.stats)return;
+      if(!snap.exists){if(Object.keys(S.stats).length)queueSave('stats');return;}
+      const d=snap.data(),j=JSON.stringify(d.s||{});if(j===lastStat)return;lastStat=j;
+      S.stats=JSON.parse(j);lsSet(LS_DATA,S);if(ui.tab!=='dice')renderAll();
+    },()=>{});
+  }catch(e){mode='local';setSync('','存在這個瀏覽器');}
+}
+
+/* ============ shape helpers ============ */
+const allShapes=()=>[...S.chords,...BUILTIN];
+const findShape=id=>allShapes().find(s=>s.id===id);
+const isBlind=s=>s.src==='custom'?!!s.blind:!!(S.flags[s.id]&&S.flags[s.id].blind);
+const shapeQ=s=>s.fixedQ||detectQ(s.frets,s.root);
+const prio=s=>isBlind(s)?6:s.src==='custom'?3:1;
+function missRate(id){const st=S.stats[id];if(!st||!st.n)return null;return st.miss/st.n;}
+function shapeTitle(s){
+  if(s.name)return s.name;
+  const q=shapeQ(s);return qLabel(q)+(s.tag?' · '+s.tag:'');
+}
+function shapeDesc(s){
+  const r=rels(s.frets,s.root),bi=bassIdx(s.frets);
+  return invName(r[bi])+' · 根音在 '+strNo(s.root)+' 弦'+(hasOpen(s.frets)?' · 含空弦':'');
+}
+function toggleBlind(s){
+  if(s.src==='custom'){s.blind=!s.blind;}
+  else{if(isBlind(s))delete S.flags[s.id];else S.flags[s.id]={blind:true};}
+  queueSave('lib');
+}
+function weighted(arr){const t=arr.reduce((a,b)=>a+b.w,0);let x=Math.random()*t;for(const a of arr){x-=a.w;if(x<=0)return a;}return arr[arr.length-1];}
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ============ diagram ============ */
+function diagram(frets,root,opt={}){
+  const labels=opt.labels!==false;
+  const set=root!=null&&frets[root]>=0?relSet(frets,root):new Set();
+  const rr=root!=null&&frets[root]>=0?rels(frets,root):frets.map(()=>null);
+  const fr=fretted(frets),maxF=fr.length?Math.max(...fr):0,minF=fr.length?Math.min(...fr):1;
+  const start=maxF<=4?1:minF,rows=Math.max(4,maxF-start+1);
+  const L=24,T=24,sx=18,fy=22,W=L+5*sx+16,H=T+rows*fy+10;
+  let s=`<svg class="dg" viewBox="0 0 ${W} ${H}" role="img" aria-label="和弦圖">`;
+  for(let i=0;i<=rows;i++)s+=`<line class="frt" x1="${L}" x2="${L+5*sx}" y1="${T+i*fy}" y2="${T+i*fy}"/>`;
+  for(let i=0;i<6;i++)s+=`<line class="str" x1="${L+i*sx}" x2="${L+i*sx}" y1="${T}" y2="${T+rows*fy}"/>`;
+  if(start===1)s+=`<line class="nut" x1="${L-1}" x2="${L+5*sx+1}" y1="${T}" y2="${T}"/>`;
+  else s+=`<text class="fno" x="${L-6}" y="${T+fy*0.5+3}" text-anchor="end">${start}</text>`;
+  for(let i=0;i<6;i++){
+    const x=L+i*sx,f=frets[i];
+    if(f<0){s+=`<text class="mk" x="${x}" y="${T-9}" text-anchor="middle">×</text>`;continue;}
+    const rel=rr[i],fm=rel!=null?fam(rel,set):'x',lab=rel!=null?degLabel(rel,set):'';
+    if(f===0){
+      if(labels&&rel!=null){s+=`<circle class="ring fam-${fm}" cx="${x}" cy="${T-11}" r="6.5"/><text class="rlbl lf-${fm}" x="${x}" y="${T-8.3}" text-anchor="middle">${lab}</text>`;}
+      else s+=`<circle class="ring neutral" cx="${x}" cy="${T-11}" r="4.5"/>`;
+      continue;
+    }
+    const cy=T+(f-start+0.5)*fy;
+    if(labels&&rel!=null){s+=`<circle class="fam-${fm}" cx="${x}" cy="${cy}" r="8"/><text class="lbl lf-${fm}" x="${x}" y="${cy+3}" text-anchor="middle">${lab}</text>`;}
+    else s+=`<circle class="neutral" cx="${x}" cy="${cy}" r="7"/>`;
+  }
+  return s+'</svg>';
+}
+
+/* ============ dice ============ */
+function genBpm(style){const[c,sp]=STYLE_BPM[style];return Math.round(c+(Math.random()+Math.random()-1)*sp);}
+function pickKey(minor){return weighted((minor?MINOR_KEYS:MAJOR_KEYS).map(([k,w])=>({k,w}))).k;}
+function doRoll(){
+  const L=ui.locks;
+  let prog=L.prog&&roll?roll.prog:null;
+  if(!prog){
+    const sel=new Set(ui.styles.length?ui.styles:STYLES.map(s=>s[0]));
+    const pool=PROGS.filter(p=>p.st.some(x=>sel.has(x))&&(!roll||p!==roll.prog||PROGS.length<2));
+    prog=weighted(pool.map(p=>({...p,_p:p,w:p.w})))._p;
+  }
+  const sel=ui.styles.length?ui.styles:STYLES.map(s=>s[0]);
+  const stOpts=prog.st.filter(s=>sel.includes(s));
+  const style=L.prog&&roll&&stOpts.includes(roll.style)?roll.style:(stOpts.length?stOpts:prog.st)[Math.floor(Math.random()*(stOpts.length||prog.st.length))];
+  const key=L.key&&roll?roll.key:pickKey(prog.minor);
+  const bpm=L.bpm&&roll?roll.bpm:genBpm(style);
+  const meter=(style==='dream'||style==='shoegaze')&&Math.random()<0.12?3:4;
+  roll={prog,style,key,bpm,meter,chords:buildChords(prog,key)};
+  voiceAll();
+  resetMetroPosition();
+}
+function buildChords(prog,key){
+  const K=parseKey(key);
+  return prog.ch.map(tok=>{
+    const c=parseRoman(tok);const L=mod(K.L+c.step,7),pc=mod(K.pc+c.semi,12);
+    let name=spell(L,pc)+QD[c.q];
+    if(c.inv){const rel=c.inv==='3'?(['m','m7','m9','madd9','m6','m11','mMaj7','dim','m7b5'].includes(c.q)?3:4):7;name+='/'+noteNameRel(L,pc,rel);}
+    return{...c,L,pc,name,v:null};
+  });
+}
+function pickVoicing(c,center,excludeId){
+  const chain=COMPAT[c.q]||[c.q],cands=[];
+  for(const sh of allShapes()){
+    const q=shapeQ(sh),idx=chain.indexOf(q);if(idx<0)continue;
+    const pl=placements(sh,c.pc);if(!pl.length)continue;
+    let best=pl[0],bd=1e9;for(const d of pl){const dist=Math.abs(centerOf(shifted(sh.frets,d))-center);if(dist<bd){bd=dist;best=d;}}
+    let w=prio(sh)*(idx===0?3:1/(1+idx))/(1+bd/4);
+    if(c.inv){const r=rels(sh.frets,sh.root);if(invCode(r[bassIdx(sh.frets)])===c.inv)w*=5;else w*=0.4;}
+    if(sh.id===excludeId)w*=0.03;
+    cands.push({sh,d:best,w});
+  }
+  if(!cands.length)return null;
+  const p=weighted(cands),f=shifted(p.sh.frets,p.d);
+  return{id:p.sh.id,frets:f,root:p.sh.root,q:shapeQ(p.sh),center:centerOf(f)};
+}
+function voiceAll(){let center=3+Math.random()*4;for(const c of roll.chords){c.v=pickVoicing(c,center);if(c.v)center=c.v.center*0.6+center*0.4;}}
+function barsPer(){if(ui.barsMode!=='auto')return+ui.barsMode;return roll.chords.length<=2?2:1;}
+
+const DIE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg>';
+const LOCK_SVG=on=>on?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>';
+function lockBtn(k,label){const on=ui.locks[k];return`<button class="lock" data-lock="${k}" aria-pressed="${on}" title="${on?'解除鎖定':'鎖定'}${label}" aria-label="${on?'解除鎖定':'鎖定'}${label}">${LOCK_SVG(on)}</button>`;}
+
+function renderDice(){
+  const el=document.getElementById('tab-dice');const r=roll;
+  const styleName=Object.fromEntries(STYLES)[r.style];
+  const K=parseKey(r.key);const keyName=spell(K.L,K.pc)+(r.prog.minor?' minor':' major');
+  const n=r.chords.length;
+  el.innerHTML=`
+  <div class="dice-head">
+    <div class="field"><span class="label">風格（可複選）</span>
+      <div class="row">${STYLES.map(([id,lab])=>`<button class="chip" data-style="${id}" aria-pressed="${ui.styles.includes(id)}">${lab}</button>`).join('')}</div>
+    </div>
+    <button class="rollbtn" id="roll">${DIE_SVG}擲骰子</button>
+  </div>
+  <div class="facts">
+    <div class="fact"><div class="lk"><span class="label">調性</span>${lockBtn('key','調性')}</div><span class="v">${esc(keyName)}</span><span class="sub">${esc(r.prog.mode)}</span></div>
+    <div class="fact"><div class="lk"><span class="label">速度</span>${lockBtn('bpm','速度')}</div><span class="v mono" id="bpmv">${r.bpm}</span><span class="sub">BPM · ${r.meter}/4</span></div>
+    <div class="fact"><div class="lk"><span class="label">進行</span>${lockBtn('prog','和弦進行')}</div><span class="v mono" style="font-size:19px;line-height:1.5">${r.chords.map(c=>prettyRn(c.tok)).join(' – ')}</span><span class="sub">${n} 個和弦</span></div>
+    <div class="fact"><span class="label">風格</span><span class="v" style="font-size:24px">${esc(styleName)}</span><span class="sub">${r.prog.st.map(s=>Object.fromEntries(STYLES)[s]).join(' / ')}</span></div>
+  </div>
+  <div class="prog n${n}">${r.chords.map((c,i)=>chordCard(c,i)).join('')}</div>
+  <div class="playbar">
+    <button class="btn" id="metro">${metro.on?'■ 停止':'▶ 節拍器'}</button>
+    <div class="beats" id="beats">${Array.from({length:r.meter},(_, i)=>`<i class="${i===0?'acc':''}"></i>`).join('')}</div>
+    <label class="hint" for="bars">每個和弦</label>
+    <select id="bars">${[['auto','自動'],['1','1 小節'],['2','2 小節'],['4','4 小節']].map(([v,l])=>`<option value="${v}" ${ui.barsMode===v?'selected':''}>${l}</option>`).join('')}</select>
+    <button class="btn small ghost" id="revoice">全部重抽指型</button>
+  </div>
+  <p class="feel">${esc(r.prog.feel)}</p>
+  <p class="hint">指型優先從你的盲區抽，其次是自訂指型，最後才是內建的。位置會盡量靠近前一個和弦。</p>`;
+}
+function chordCard(c,i){
+  let body;
+  if(c.v){
+    const sh=findShape(c.v.id);const sub=c.v.q!==c.q?`<em>用 ${esc(qLabel(c.v.q))} 指型代替</em><br>`:'';
+    const r=rels(c.v.frets,c.v.root),bi=bassIdx(c.v.frets);
+    const src=sh?(isBlind(sh)?'盲區':sh.src==='custom'?'自訂':'內建'):'';
+    body=`${diagram(c.v.frets,c.v.root)}<div class="vinfo">${sub}${invName(r[bi])} · ${src}</div>
+      <div class="row"><button class="btn small ghost" data-revoice="${i}">換指型</button>${sh?`<button class="btn small ghost" data-blind="${esc(sh.id)}" aria-pressed="${isBlind(sh)}">${isBlind(sh)?'盲區 ✓':'加入盲區'}</button>`:''}</div>`;
+  }else{
+    body=`<div class="none">指型庫裡沒有能用在 ${esc(qLabel(c.q))} 的指型</div><button class="btn small" data-newq="${esc(c.q)}">新增一個</button>`;
+  }
+  return`<div class="ccard" data-ci="${i}"><span class="rn">${prettyRn(c.tok)}</span><span class="nm">${esc(c.name)}</span>${body}</div>`;
+}
+
+/* metronome */
+let audio=null;const metro={on:false,next:0,beat:0,bar:0,timer:null};
+function resetMetroPosition(){metro.beat=0;metro.bar=0;if(audio)metro.next=audio.currentTime+0.08;}
+function startMetro(){
+  try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();}catch(e){toast('這個瀏覽器不能播放聲音');return;}
+  audio.resume();metro.on=true;resetMetroPosition();metro.timer=setInterval(schedule,25);
+}
+function stopMetro(){metro.on=false;clearInterval(metro.timer);document.querySelectorAll('.ccard.now').forEach(e=>e.classList.remove('now'));document.querySelectorAll('#beats i').forEach(e=>e.classList.remove('on'));}
+function schedule(){
+  if(!roll)return;const spb=60/roll.bpm;
+  while(metro.next<audio.currentTime+0.12){
+    const acc=metro.beat===0;click(metro.next,acc);
+    const b=metro.beat,bar=metro.bar,delay=(metro.next-audio.currentTime)*1000;
+    setTimeout(()=>showBeat(b,bar),Math.max(0,delay));
+    metro.next+=spb;metro.beat++;if(metro.beat>=roll.meter){metro.beat=0;metro.bar++;}
+  }
+}
+function click(t,acc){const o=audio.createOscillator(),g=audio.createGain();o.frequency.value=acc?1600:1050;g.gain.setValueAtTime(acc?0.45:0.25,t);g.gain.exponentialRampToValueAtTime(0.0001,t+0.05);o.connect(g).connect(audio.destination);o.start(t);o.stop(t+0.06);}
+function showBeat(b,bar){
+  if(!metro.on||ui.tab!=='dice')return;
+  document.querySelectorAll('#beats i').forEach((e,i)=>e.classList.toggle('on',i===b));
+  const ci=Math.floor(bar/barsPer())%roll.chords.length;
+  document.querySelectorAll('.ccard').forEach(e=>e.classList.toggle('now',+e.dataset.ci===ci));
+}
+
+/* ============ drill ============ */
+function drillPool(){
+  return allShapes().filter(s=>{
+    if(s.root==null||s.frets[s.root]<0)return false;
+    if(ui.p.onlyBlind&&!isBlind(s))return false;
+    if(!ui.p.builtin&&s.src==='builtin'&&!isBlind(s))return false;
+    return true;
+  });
+}
+function drillWeight(s){
+  const st=S.stats[s.id]||{n:0,miss:0};
+  let w=prio(s)*(1+2*((st.miss+1)/(st.n+2)));
+  if(!st.n)w*=1.3;
+  const ri=recent.indexOf(s.id);if(ri>=0)w*=0.05*(ri+1);
+  return w;
+}
+function nextCard(){
+  const pool=drillPool();revealed=false;
+  if(!pool.length){card=null;return;}
+  const s=weighted(pool.map(sh=>({sh,w:drillWeight(sh)}))).sh;
+  const m=ui.p.mode==='mix'?(Math.random()<0.5?'name':'shape'):ui.p.mode;
+  let pc=null,d=0;
+  if(ui.p.randomRoot){
+    if(hasOpen(s.frets)){pc=mod(rootMidi(s.frets,s.root),12);}
+    else{const tries=[...Array(12).keys()].sort(()=>Math.random()-0.5);
+      for(const t of tries){const pl=placements(s,t);if(pl.length){pc=t;d=pl.reduce((a,b)=>Math.abs(centerOf(shifted(s.frets,b))-6)<Math.abs(centerOf(shifted(s.frets,a))-6)?b:a);break;}}}
+  }
+  card={id:s.id,mode:m,pc,d};
+  recent.unshift(s.id);recent=recent.slice(0,Math.min(4,Math.max(0,pool.length-1)));
+}
+function grade(hard){
+  if(!card)return;
+  const st=S.stats[card.id]||{n:0,miss:0,last:0};
+  st.n++;if(hard)st.miss++;st.last=Date.now();S.stats[card.id]=st;
+  sessionDone++;if(hard)sessionHard++;
+  queueSave('stats');nextCard();renderDrill();
+}
+function renderDrill(){
+  const el=document.getElementById('tab-drill');
+  if(!card)nextCard();
+  const pool=drillPool();
+  const blindN=allShapes().filter(isBlind).length;
+  let stage;
+  if(!card){
+    stage=`<div class="card-stage"><div class="empty">${ui.p.onlyBlind?'盲區目前是空的。到「指型庫」把不熟的指型標成盲區，或新增你自己的指型。':'沒有可以練的指型。'}</div></div>`;
+  }else{
+    const s=findShape(card.id);const f=shifted(s.frets,card.d);const q=shapeQ(s);
+    const r=rels(f,s.root),set=relSet(f,s.root),bi=bassIdx(f),ti=topIdx(f);
+    const rootName=card.pc!=null?PCNAME[card.pc]:'';
+    const minF=fretted(f).length?Math.min(...fretted(f)):0;
+    const big=card.mode==='name'
+      ?`<div class="prompt-q">把這個和弦按出來</div><div class="prompt-big">${esc(rootName)}${esc(q==='maj'?'':QD[q]??'')}${!rootName&&q==='maj'?'maj':''}${q==null?'?':''}${s.name?`<small>${esc(s.name)}</small>`:''}</div>
+        <div class="facts-inline"><span>根音在 ${strNo(s.root)} 弦</span><span>低音 = ${degLabel(r[bi],set)}</span><span>最高音 = ${degLabel(r[ti],set)}</span><span>${invName(r[bi])}</span>${card.pc!=null?'':'<span>位置不限</span>'}</div>`
+      :`<div class="prompt-q">這是什麼和弦？說出每個音的級數，再說出根音在哪條弦</div>
+        <div class="facts-inline">${rootName?`<span>根音是 ${esc(rootName)}</span>`:'<span>不限根音</span>'}</div>`;
+    const showDiagram=card.mode==='shape'||revealed;
+    const meta=revealed?`<div class="reveal-meta">
+        <span class="nm">${esc(rootName)}${esc(QD[q]??'?')}${!rootName&&q==='maj'?'maj':''}</span>
+        <span class="hint">${esc(shapeDesc(s))}${card.pc!=null&&minF?` · 從第 ${minF} 格`:''}</span>
+        <span class="hint">組成：${r.map((x,i)=>x==null?null:degLabel(x,set)).filter(Boolean).join(' · ')}（6弦 → 1弦）</span>
+        ${s.notes?`<span class="hint">筆記：${esc(s.notes)}</span>`:''}
+        ${statText(s.id)}
+      </div>`:'';
+    stage=`<div class="card-stage">
+      ${big}
+      <div class="stage-body">${showDiagram?diagram(f,s.root,{labels:revealed}):'<div class="empty" style="align-self:center">先在吉他上按出來，再翻牌對答案。</div>'}${meta}</div>
+      <div class="grade">${revealed
+        ?`<button class="btn ok" id="g-ok">順<kbd>1</kbd></button><button class="btn bad" id="g-bad">卡住<kbd>2</kbd></button>
+          <button class="btn ghost small" data-blind="${esc(s.id)}" aria-pressed="${isBlind(s)}">${isBlind(s)?'盲區 ✓':'加入盲區'}<kbd>B</kbd></button>`
+        :`<button class="btn primary" id="reveal">翻牌<kbd>Space</kbd></button><button class="btn ghost small" id="skip">跳過</button>`}</div>
+    </div>`;
+  }
+  el.innerHTML=`<div class="drill">${stage}
+    <aside class="side">
+      <div class="box"><span class="label">題型</span>
+        <div class="seg">${[['name','名字→指型'],['shape','指型→級數'],['mix','混合']].map(([v,l])=>`<button data-pmode="${v}" aria-pressed="${ui.p.mode===v}">${l}</button>`).join('')}</div>
+        <label class="tog" for="p-rr">隨機根音（練指板位置）<input type="checkbox" id="p-rr" ${ui.p.randomRoot?'checked':''}></label>
+        <label class="tog" for="p-ob">只練盲區<input type="checkbox" id="p-ob" ${ui.p.onlyBlind?'checked':''}></label>
+        <label class="tog" for="p-bi">包含內建指型<input type="checkbox" id="p-bi" ${ui.p.builtin?'checked':''}></label>
+      </div>
+      <div class="box"><span class="label">這一輪</span>
+        <div class="statline"><span>練了</span><b>${sessionDone}</b></div>
+        <div class="statline"><span>卡住</span><b>${sessionHard}</b></div>
+        <div class="statline"><span>題庫</span><b>${pool.length}</b></div>
+        <div class="statline"><span>盲區</span><b>${blindN}</b></div>
+      </div>
+      <p class="hint">抽題權重：盲區 ×6、自訂 ×3、內建 ×1，再依你按「卡住」的比例往上加。</p>
+    </aside></div>`;
+}
+function statText(id){const st=S.stats[id];if(!st||!st.n)return'<span class="hint">第一次練</span>';return`<span class="hint">練過 ${st.n} 次，卡住 ${st.miss} 次</span>`;}
+
+/* ============ library ============ */
+function renderLib(){
+  const el=document.getElementById('tab-lib');
+  const all=allShapes();
+  const qs=[...new Set(all.map(shapeQ).filter(Boolean))].sort((a,b)=>QUAL_OPTIONS.indexOf(a)-QUAL_OPTIONS.indexOf(b));
+  const pass=s=>!ui.libQ||shapeQ(s)===ui.libQ;
+  const blind=all.filter(s=>isBlind(s)&&pass(s));
+  const custom=S.chords.filter(s=>!isBlind(s)&&pass(s));
+  const builtin=BUILTIN.filter(s=>!isBlind(s)&&pass(s));
+  const f=ui.libFilter;
+  const group=(title,list,emptyMsg)=>`<div class="libgroup"><h2>${title}<span class="count">${list.length}</span></h2>${list.length?`<div class="libgrid">${list.map(libCard).join('')}</div>`:`<div class="empty">${emptyMsg}</div>`}</div>`;
+  el.innerHTML=`<div class="libbar">
+      <div class="row">${[['all','全部'],['blind','盲區'],['custom','自訂'],['builtin','內建']].map(([v,l])=>`<button class="chip" data-lf="${v}" aria-pressed="${f===v}">${l}</button>`).join('')}
+      <select id="libq" aria-label="依和弦性質篩選"><option value="">所有性質</option>${qs.map(q=>`<option value="${esc(q)}" ${ui.libQ===q?'selected':''}>${esc(qLabel(q))}</option>`).join('')}</select></div>
+      <button class="btn primary" id="new-shape">＋ 新增指型</button>
+    </div>
+    ${f==='all'||f==='blind'?group('盲區',blind,'還沒有盲區。下面任何一個指型按「加入盲區」，或新增你自己的。'):''}
+    ${f==='all'||f==='custom'?group('自訂',custom,'還沒有自訂指型。按「新增指型」記下你常用、或還不熟的按法。'):''}
+    ${f==='all'||f==='builtin'?group('內建',builtin,'沒有符合的內建指型。'):''}
+    <div class="backup"><span class="label">備份</span>
+      <p class="hint">自訂指型、盲區和練習紀錄${mode==='db'?'已存在你的帳號裡。':'目前只存在這個瀏覽器：換裝置或換瀏覽器看不到；清除網站資料、無痕視窗關掉、Safari 超過 7 天沒開（加到主畫面就不會）都會被清掉。記得定期備份。'}</p>
+      <div class="row"><button class="btn small" id="exp">複製 JSON</button><button class="btn small" id="imp">匯入貼上的 JSON</button></div>
+      <textarea id="iobox" placeholder="匯出的 JSON 會出現在這裡；也可以貼上之前的備份再按匯入"></textarea>
+    </div>`;
+}
+function libCard(s){
+  const q=shapeQ(s),mr=missRate(s.id),st=S.stats[s.id];
+  const sug=!isBlind(s)&&st&&st.n>=3&&mr>=0.5;
+  const confirmDel=pendingDelete===s.id;
+  return`<div class="lcard${isBlind(s)?' blind':''}">
+    ${diagram(s.frets,s.root)}
+    <span class="q">${esc(shapeTitle(s))}</span>
+    <span class="meta">${s.name?esc(qLabel(q))+' · ':''}${esc(shapeDesc(s))}<br>${st&&st.n?`練 ${st.n} · 卡 ${st.miss}`:'還沒練過'}</span>
+    ${sug?'<span class="tag sug">常卡住，建議加入盲區</span>':''}
+    <div class="acts">
+      <button class="btn small" data-blind="${esc(s.id)}" aria-pressed="${isBlind(s)}">${isBlind(s)?'盲區 ✓':'加入盲區'}</button>
+      ${s.src==='custom'
+        ?`<button class="btn small ghost" data-edit="${esc(s.id)}">編輯</button><button class="btn small ghost" data-del="${esc(s.id)}" style="${confirmDel?'color:var(--warn);border-color:var(--warn)':''}">${confirmDel?'確定刪除':'刪除'}</button>`
+        :`<button class="btn small ghost" data-copy="${esc(s.id)}">複製編輯</button>`}
+    </div></div>`;
+}
+
+/* ============ editor ============ */
+function openEditor(src,opts={}){
+  editing=src?{id:src.src==='custom'?src.id:null,name:src.src==='custom'?src.name||'':'',frets:[...src.frets],root:src.root,notes:src.notes||'',fixedQ:src.src==='custom'?src.fixedQ||'':'',blind:src.src==='custom'?!!src.blind:true,start:1,tool:'place'}
+    :{id:null,name:'',frets:[-1,-1,-1,-1,-1,-1],root:null,notes:'',fixedQ:'',blind:true,start:1,tool:'place',wantQ:opts.wantQ||''};
+  const fr=fretted(editing.frets);if(fr.length){const mx=Math.max(...fr);editing.start=mx<=6?1:Math.max(1,Math.min(...fr)-1);}
+  renderEditor();
+}
+function closeEditor(){editing=null;document.getElementById('overlay-root').innerHTML='';}
+function renderEditor(){
+  const e=editing,root=document.getElementById('overlay-root');
+  if(!e){root.innerHTML='';return;}
+  const valid=e.root!=null&&e.frets[e.root]>=0;
+  const set=valid?relSet(e.frets,e.root):new Set(),rr=valid?rels(e.frets,e.root):[];
+  const det=valid?detectQ(e.frets,e.root):null;
+  let grid=`<div></div>`;
+  for(let i=0;i<6;i++){const f=e.frets[i];grid+=`<div class="hd"><button data-os="${i}" class="${f===0?'open':''}" title="切換空弦 / 悶音">${f===0?'○':f<0?'×':'·'}</button></div>`;}
+  if(e.start===1)grid+=`<div></div><div class="nutline"></div>`;
+  for(let r=0;r<6;r++){
+    const fret=e.start+r;grid+=`<div class="fn">${fret}</div>`;
+    for(let i=0;i<6;i++){
+      const on=e.frets[i]===fret;let dot='';
+      if(on){if(valid){const fm=fam(rr[i],set);dot=`<span class="dot fam-${fm}">${degLabel(rr[i],set)}</span>`;}else dot=`<span class="dot pending"></span>`;}
+      grid+=`<button class="cell c${i}" data-cell="${i}:${fret}" aria-label="${strNo(i)} 弦 第 ${fret} 格">${dot||'<span class="ghost"></span>'}</button>`;
+    }
+  }
+  grid+=`<div></div>`+[6,5,4,3,2,1].map(n=>`<div class="strlab">${n}</div>`).join('');
+  const bi=bassIdx(e.frets);
+  root.innerHTML=`<div class="overlay" id="ov"><div class="editor" role="dialog" aria-modal="true" aria-label="編輯指型">
+    <h2>${e.id?'編輯指型':'新增指型'}</h2>
+    ${e.wantQ?`<p class="hint">骰子需要一個 ${esc(qLabel(e.wantQ))} 指型。</p>`:''}
+    <div class="ed-cols">
+      <div class="field" style="gap:10px">
+        <div class="seg" style="max-width:300px">
+          <button data-tool="place" aria-pressed="${e.tool==='place'}">按音</button>
+          <button data-tool="root" aria-pressed="${e.tool==='root'}">設根音</button>
+        </div>
+        <div class="fb">${grid}</div>
+        <div class="row"><button class="btn small" id="st-up" ${e.start<=1?'disabled':''}>▲ 往琴頭</button><span class="hint mono">第 ${e.start}–${e.start+5} 格</span><button class="btn small" id="st-dn" ${e.start>=14?'disabled':''}>▼ 往琴身</button><button class="btn small ghost" id="clr">清空</button></div>
+        <p class="hint" style="max-width:300px">${e.tool==='place'?'點格子放音，同一格再點一次會拿掉。上方按鈕切換空弦 ○ / 悶音 ×。':'點任何一個有按的音（或空弦），把它設成根音。根音不必在最低音，轉位就是這樣記。'}</p>
+      </div>
+      <div class="ed-side">
+        <div class="detect">${valid
+          ?`<span class="big">${esc(qLabel(e.fixedQ||det))}</span>${e.fixedQ&&e.fixedQ!==det?` <span class="hint">（自動判斷：${esc(qLabel(det))}）</span>`:''}<br><span class="hint">${invName(rr[bi])} · 根音在 ${strNo(e.root)} 弦 · 組成 ${rr.map(x=>x==null?null:degLabel(x,set)).filter(Boolean).join(' ')}</span>`
+          :`<span class="hint">${e.frets.some(x=>x>=0)?'切到「設根音」，點一下根音在哪。':'先在左邊放音。'}</span>`}</div>
+        <div class="field"><label class="label" for="ed-name">名稱（可不填）</label><input type="text" id="ed-name" value="${esc(e.name)}" placeholder="例如：螢火蟲 verse 的 maj7"></div>
+        <div class="field"><label class="label" for="ed-q">和弦性質</label>
+          <select id="ed-q"><option value="">自動判斷${det?'（'+esc(qLabel(det))+'）':''}</option>${QUAL_OPTIONS.map(q=>`<option value="${q}" ${e.fixedQ===q?'selected':''}>${esc(qLabel(q))}</option>`).join('')}</select></div>
+        <div class="field"><label class="label" for="ed-notes">筆記</label><textarea id="ed-notes" rows="2" placeholder="哪裡卡、手指怎麼擺">${esc(e.notes)}</textarea></div>
+        <label class="tog" for="ed-blind">標成盲區<input type="checkbox" id="ed-blind" ${e.blind?'checked':''}></label>
+        <div class="ed-acts"><button class="btn ghost" id="ed-cancel">取消</button><button class="btn primary" id="ed-save" ${valid?'':'disabled'}>儲存</button></div>
+      </div>
+    </div></div></div>`;
+}
+function editorClick(t){
+  const e=editing;
+  const cell=t.closest('[data-cell]'),os=t.closest('[data-os]'),tool=t.closest('[data-tool]');
+  if(tool){e.tool=tool.dataset.tool;return renderEditor();}
+  if(os){const i=+os.dataset.os;
+    if(e.tool==='root'){if(e.frets[i]===0){e.root=i;}return renderEditor();}
+    e.frets[i]=e.frets[i]===0?-1:0;if(e.frets[i]<0&&e.root===i)e.root=null;return renderEditor();}
+  if(cell){const[i,f]=cell.dataset.cell.split(':').map(Number);
+    if(e.tool==='root'){if(e.frets[i]===f)e.root=i;else{e.frets[i]=f;e.root=i;}return renderEditor();}
+    if(e.frets[i]===f){e.frets[i]=-1;if(e.root===i)e.root=null;}else e.frets[i]=f;
+    return renderEditor();}
+  if(t.closest('#st-up')){e.start=Math.max(1,e.start-1);return renderEditor();}
+  if(t.closest('#st-dn')){e.start=Math.min(14,e.start+1);return renderEditor();}
+  if(t.closest('#clr')){e.frets=[-1,-1,-1,-1,-1,-1];e.root=null;return renderEditor();}
+  if(t.closest('#ed-cancel')||t.id==='ov'){return closeEditor();}
+  if(t.closest('#ed-save')){
+    if(e.root==null||e.frets[e.root]<0)return;
+    const data={id:e.id||('c-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),name:e.name.trim(),frets:[...e.frets],root:e.root,notes:e.notes.trim(),fixedQ:e.fixedQ,blind:e.blind,src:'custom',created:Date.now()};
+    const i=S.chords.findIndex(c=>c.id===data.id);
+    if(i>=0){data.created=S.chords[i].created||data.created;S.chords[i]=data;}else S.chords.unshift(data);
+    queueSave('lib');closeEditor();toast(i>=0?'已更新':'已加入指型庫');
+    if(roll&&roll.chords.some(c=>!c.v))voiceAll();
+    renderAll();
+  }
+}
+
+/* ============ wiring ============ */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
+function setTab(tab){
+  ui.tab=tab;saveUi();
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  for(const t of['dice','drill','lib'])document.getElementById('tab-'+t).hidden=t!==tab;
+  renderAll();
+}
+function renderAll(){
+  if(ui.tab==='dice')renderDice();else if(ui.tab==='drill')renderDrill();else renderLib();
+}
+function animateBpm(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const el=document.getElementById('bpmv');if(!el)return;const target=roll.bpm;let n=0;
+  const iv=setInterval(()=>{n++;el.textContent=n>=8?target:Math.round(60+Math.random()*100);if(n>=8)clearInterval(iv);},35);
+}
+
+document.addEventListener('click',ev=>{
+  const t=ev.target;
+  if(editing&&t.closest('#overlay-root'))return editorClick(t);
+  const tab=t.closest('[data-tab]');if(tab)return setTab(tab.dataset.tab);
+  const bl=t.closest('[data-blind]');if(bl){const s=findShape(bl.dataset.blind);if(s){toggleBlind(s);toast(isBlind(s)?'已加入盲區':'已移出盲區');renderAll();}return;}
+  // dice
+  if(t.closest('#roll')){doRoll();renderDice();animateBpm();document.querySelector('.dice-head')?.classList.add('rolling');setTimeout(()=>document.querySelector('.dice-head')?.classList.remove('rolling'),500);return;}
+  const st=t.closest('[data-style]');if(st){const id=st.dataset.style;ui.styles=ui.styles.includes(id)?ui.styles.filter(x=>x!==id):[...ui.styles,id];saveUi();return renderDice();}
+  const lk=t.closest('[data-lock]');if(lk){const k=lk.dataset.lock;ui.locks[k]=!ui.locks[k];saveUi();return renderDice();}
+  const rv=t.closest('[data-revoice]');if(rv){const i=+rv.dataset.revoice,c=roll.chords[i],prev=roll.chords[i-1];c.v=pickVoicing(c,prev&&prev.v?prev.v.center:(c.v?c.v.center:5),c.v&&c.v.id);return renderDice();}
+  if(t.closest('#revoice')){voiceAll();return renderDice();}
+  if(t.closest('#metro')){metro.on?stopMetro():startMetro();t.closest('#metro').textContent=metro.on?'■ 停止':'▶ 節拍器';return;}
+  const nq=t.closest('[data-newq]');if(nq)return openEditor(null,{wantQ:nq.dataset.newq});
+  // drill
+  if(t.closest('#reveal')){revealed=true;return renderDrill();}
+  if(t.closest('#skip')){nextCard();return renderDrill();}
+  if(t.closest('#g-ok'))return grade(false);
+  if(t.closest('#g-bad'))return grade(true);
+  const pm=t.closest('[data-pmode]');if(pm){ui.p.mode=pm.dataset.pmode;saveUi();nextCard();return renderDrill();}
+  // library
+  const lf=t.closest('[data-lf]');if(lf){ui.libFilter=lf.dataset.lf;saveUi();return renderLib();}
+  if(t.closest('#new-shape'))return openEditor(null);
+  const ed=t.closest('[data-edit]');if(ed)return openEditor(findShape(ed.dataset.edit));
+  const cp=t.closest('[data-copy]');if(cp)return openEditor(findShape(cp.dataset.copy));
+  const dl=t.closest('[data-del]');if(dl){const id=dl.dataset.del;
+    if(pendingDelete===id){S.chords=S.chords.filter(c=>c.id!==id);delete S.stats[id];pendingDelete=null;queueSave('lib');queueSave('stats');toast('已刪除');}
+    else{pendingDelete=id;setTimeout(()=>{if(pendingDelete===id){pendingDelete=null;if(ui.tab==='lib')renderLib();}},3000);}
+    return renderLib();}
+  if(t.closest('#exp')){const txt=JSON.stringify({chords:S.chords,flags:S.flags,stats:S.stats},null,1);const box=document.getElementById('iobox');box.value=txt;
+    const p=navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(txt):Promise.reject();
+    p.then(()=>toast('已複製到剪貼簿'),()=>{box.select();toast('已選取，請手動複製');});return;}
+  if(t.closest('#imp')){try{const d=JSON.parse(document.getElementById('iobox').value);
+      if(!Array.isArray(d.chords))throw 0;
+      const ok=d.chords.filter(c=>c&&Array.isArray(c.frets)&&c.frets.length===6&&Number.isInteger(c.root)).map(c=>({...c,src:'custom'}));
+      const ids=new Set(ok.map(c=>c.id));S.chords=[...ok,...S.chords.filter(c=>!ids.has(c.id))];
+      S.flags={...S.flags,...(d.flags||{})};S.stats={...S.stats,...(d.stats||{})};
+      queueSave('lib');queueSave('stats');toast('匯入 '+ok.length+' 個指型');renderLib();
+    }catch(e){toast('JSON 格式不對，請貼上「複製 JSON」產生的內容');}return;}
+});
+document.addEventListener('change',ev=>{
+  const t=ev.target;
+  if(t.id==='bars'){ui.barsMode=t.value;saveUi();return;}
+  if(t.id==='p-rr'){ui.p.randomRoot=t.checked;saveUi();nextCard();return renderDrill();}
+  if(t.id==='p-ob'){ui.p.onlyBlind=t.checked;saveUi();nextCard();return renderDrill();}
+  if(t.id==='p-bi'){ui.p.builtin=t.checked;saveUi();nextCard();return renderDrill();}
+  if(t.id==='libq'){ui.libQ=t.value;saveUi();return renderLib();}
+  if(editing){
+    if(t.id==='ed-q'){editing.fixedQ=t.value;return renderEditor();}
+    if(t.id==='ed-blind'){editing.blind=t.checked;return;}
+  }
+});
+document.addEventListener('input',ev=>{
+  if(!editing)return;const t=ev.target;
+  if(t.id==='ed-name')editing.name=t.value;
+  if(t.id==='ed-notes')editing.notes=t.value;
+});
+document.addEventListener('keydown',ev=>{
+  if(editing){if(ev.key==='Escape')closeEditor();return;}
+  if(ui.tab!=='drill'||!card)return;
+  if(/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName||''))return;
+  if((ev.key===' '||ev.key==='Enter')&&!revealed){ev.preventDefault();revealed=true;renderDrill();}
+  else if(revealed&&ev.key==='1')grade(false);
+  else if(revealed&&ev.key==='2')grade(true);
+  else if(revealed&&(ev.key==='b'||ev.key==='B')){const s=findShape(card.id);if(s){toggleBlind(s);renderDrill();}}
+});
+
+doRoll();
+setTab(['dice','drill','lib'].includes(ui.tab)?ui.tab:'dice');
+initStore();
+</script>
+
+</body>
+</html>
