@@ -7,6 +7,22 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-05
+
+### Added
+- 測試：`npm test`（Node 內建的 `node --test`，沒有額外套件），涵蓋級數、和弦判斷、40 個內建指型、平移、和弦進行拼法、權重。
+- GitHub Actions：每次 push / PR 自動跑測試。
+
+### Changed
+- 純邏輯從 `index.html` 拆到 `core.js`（音級、和弦判斷、和弦進行、挑指型、出題權重），畫面程式留在 `index.html`。
+- 有用到亂數的函式可以傳入固定亂數，方便測試。
+
+### Removed
+- 刪除早期的 Claude artifact 版本。
+
+### Fixed
+- 和弦名稱不再出現重升 / 重降：D♭ 大調的 ♭VI 原本顯示 B♭♭，現在顯示 A。
+
 ## [0.1.3] - 2026-10-05
 
 ### Fixed
@@ -59,7 +75,8 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.2.0...develop
+[0.2.0]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/BillyLiao/dead-spots/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/BillyLiao/dead-spots/compare/v0.1.0...v0.1.1

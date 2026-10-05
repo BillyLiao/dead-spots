@@ -2,7 +2,7 @@
 
 要繼續開發時先讀這份。這裡記的是**現況、原因、還沒做的事**；每次改了什麼記在 [`CHANGELOG.md`](CHANGELOG.md)。
 
-最後更新：2026-10-05（v0.1.3）
+最後更新：2026-10-05（v0.2.0）
 
 ---
 
@@ -19,7 +19,7 @@
 | 本機 | `~/Projects/dead-spots/` |
 | 授權 | MIT（`LICENSE`） |
 
-**主要版本是 GitHub Pages。** 早期的 Claude artifact 版（https://claude.ai/artifact/8PdtsLwRPzkCUK8FJj97PM ）不再維護。裡面如果有資料，用「指型庫 → 備份 → 複製 JSON」匯出，再到 GitHub 版匯入。
+**GitHub Pages 是唯一的版本。** 早期的 Claude artifact 版已在 2026-10-05 刪除。
 
 ---
 
@@ -44,15 +44,21 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 
 ## 架構
 
-純靜態網頁，**只有一個檔案 `index.html`**（HTML + CSS + JS），沒有 build、沒有框架、沒有後端。
+純靜態網頁，沒有 build、沒有框架、沒有後端。兩個程式檔：
 
-`<script>` 用註解分成以下區塊（搜尋 `/* ====` 就能跳過去）：
+- **`core.js`**：不碰畫面的純邏輯。用一般 `<script src>` 載入，頂層名稱就是全域；同時 `module.exports` 給測試用。
+- **`index.html`**：HTML、CSS，和畫面 / 事件 / 儲存的程式。
+
+規則：**能不碰 DOM 就放 `core.js` 並寫測試**；有亂數的函式最後一個參數是 `rand=Math.random`，測試傳固定值。兩邊不能宣告同一個頂層名稱（瀏覽器會報錯，`test/page.test.js` 會抓）。
+
+兩個檔案都用註解分區（搜尋 `/* ====` 就能跳過去）：
 
 | 區塊 | 內容 |
 |---|---|
-| `music core` | 調弦（`OPEN`）、拼音（`spell`）、級數計算（`rels` / `degLabel` / `fam`）、和弦性質判斷（`QTABLE` / `detectQ`）、轉位、指型平移（`placements`） |
-| `builtin shapes` | 內建 40 個指型 `BUILTIN_RAW` |
-| `progressions` | 33 種和弦進行 `PROGS`、風格 BPM `STYLE_BPM`、調性權重、羅馬數字解析、性質替代表 `COMPAT` |
+| `music core`（core.js） | 調弦（`OPEN`）、拼音（`spell`）、級數計算（`rels` / `degLabel` / `fam`）、和弦性質判斷（`QTABLE` / `detectQ`）、轉位、指型平移（`placements`） |
+| `builtin shapes`（core.js） | 內建 40 個指型 `BUILTIN_RAW` |
+| `progressions`（core.js） | 33 種和弦進行 `PROGS`、風格 BPM `STYLE_BPM`、調性權重、羅馬數字解析、性質替代表 `COMPAT` |
+| `shared pure helpers`（core.js） | `weighted`、`genBpm`、`pickKey`、`buildChords`、`pickVoicingFrom`（挑指型）、`drillWeightOf`（出題權重）、`spellSimple` |
 | `state & storage` | 狀態 `S` / `ui`、localStorage、Claude db 同步 |
 | `shape helpers` | 盲區判斷、優先權 `prio`、指型標題 |
 | `diagram` | 和弦圖 SVG 產生器 |
@@ -61,6 +67,17 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 | `library` | 指型庫畫面、備份 / 匯入 |
 | `editor` | 新增 / 編輯指型的指板編輯器 |
 | `wiring` | 所有事件處理（一個全域 click / change / input / keydown） |
+
+### 測試
+
+```sh
+npm test          # 等於 node --test test/*.test.js，不需要 npm install
+```
+
+- 需要 Node（本機用 Homebrew 裝的）。GitHub Actions 每次 push / PR 都會跑（`.github/workflows/test.yml`）。
+- `test/builtin.test.js` 有一張表列出每個內建指型應有的性質、轉位、級數。**改內建指型時要一起改這張表。**
+- `test/page.test.js` 只做冒煙測試（語法、載入順序、重複宣告）。畫面互動沒有自動化測試，要自己開瀏覽器看。
+- 修 bug 時先寫一個會失敗的測試，再修。
 
 畫面是「改 state → 整個分頁重畫」的模式（`renderAll` / `renderDice` / `renderDrill` / `renderLib`），沒有虛擬 DOM。
 
@@ -108,16 +125,18 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 | Icon「斷掉的延音」 | 第一輪（和弦圖、骰子、霧、劃掉的格子）全部否決；第二輪定案，原則是要符合 dead spot 的意思＋ Zine 配色 |
 | 先存 localStorage，不做登入 | 先求能用；跨裝置的需求還不確定 |
 | GitHub Pages 是主要版本 | 兩個版本的資料不互通，同時用會讓指型散在兩邊 |
-| 單一 HTML 檔 | 自己用的小工具，不想維護 build |
+| 純邏輯拆到 `core.js`，其餘留在 `index.html` | 為了能用 Node 測試；仍然不需要 build |
 
 ---
 
 ## 已知限制與還沒驗證的
 
-- [ ] **Zine 版畫面還沒在瀏覽器實際看過**（上線時 Chrome 擴充功能沒連上，只做了 JS 語法檢查）。手機寬度、編輯器、節拍器聲音都要實測。
+- [x] ~~Zine 版畫面還沒在瀏覽器實際看過~~：2026-10-05 在 v0.2.0 發佈前用桌面瀏覽器確認三個分頁正常。
+- [ ] 手機寬度的畫面和節拍器聲音還沒特別測過。
 - [ ] localStorage 每台裝置、每個瀏覽器各自一份；Safari 超過 7 天沒開會清掉（加到主畫面可避免）。
 - [ ] 「名字 → 指型」題目在兩個指型的根音弦、低音、最高音都一樣時，會分不出是哪一個（目前靠自訂名稱補）。
 - [ ] 隨機根音是 12 個音平均抽，沒有偏向常用調。
+- [ ] 和弦名稱的拼法：重升重降會改寫，但單一升降保留樂理拼法（例如 D♭ 大調的 ♭VII 寫成 C♭，不是 B）。
 - [ ] 匯入 JSON 只做了基本檢查（frets 長度、root 是整數）。
 - [ ] 練習紀錄（`stats`）會一直變大，目前沒有清理機制。
 - [ ] 指板編輯器一次只看 6 格，跨度更大的指型要上下移動。
@@ -134,8 +153,6 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 
 ---
 
-## Claude 版（已停止維護）
+## Claude 版（已刪除）
 
-2026-10-05 決定以 GitHub Pages 為主要版本。Claude artifact 版停在 v0.1.0 的程式碼，不再同步更新。
-
-程式碼本身兩邊都能跑：有 `window.claude` 就把資料存在 claude.ai，沒有就存在 localStorage。哪天想恢復 Claude 版，把 `index.html` 的頁面內容（`<title>`、`<style>`、body）抽出來，請 Claude 用 Artifact 工具 publish 到原網址即可。
+早期在 Claude artifact 上的版本已在 2026-10-05 刪除。`index.html` 的 `initStore()` 裡還留著 `window.claude` 的 db 同步程式，在 GitHub Pages 上不會執行（沒有 `window.claude` 時自動改用 localStorage）。之後做 Firebase 同步時，可以順便把這段拿掉。
