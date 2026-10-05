@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+### Added
+- `CLAUDE.md`：給 Claude Code 的工作規則（先讀 NOTES、走 git flow、記 CHANGELOG、不套用上層的製作人簡報）。
+
 ## [0.1.1] - 2026-10-05
 
 ### Added
