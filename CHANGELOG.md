@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+### Changed
+- NOTES 補上 GitHub Pages 沒有自動部署時的檢查與手動觸發方式。
+
 ## [0.2.0] - 2026-10-05
 
 ### Added
