@@ -7,10 +7,19 @@
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-05
+
+### Fixed
+- 補上 v0.1.2 漏掉的文件更新：CHANGELOG 的授權紀錄、NOTES 的主要版本說明、README 的授權段落。
+
 ## [0.1.2] - 2026-10-05
 
 ### Added
 - `CLAUDE.md`：給 Claude Code 的工作規則（先讀 NOTES、走 git flow、記 CHANGELOG、不套用上層的製作人簡報）。
+- `LICENSE`：MIT 授權。
+
+### Changed
+- GitHub Pages 定為主要版本；Claude artifact 版不再維護。
 
 ## [0.1.1] - 2026-10-05
 
@@ -50,7 +59,8 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...develop
+[0.1.3]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/BillyLiao/dead-spots/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/BillyLiao/dead-spots/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/BillyLiao/dead-spots/releases/tag/v0.1.0
