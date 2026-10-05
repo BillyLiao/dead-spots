@@ -18,4 +18,5 @@
 
 - [`NOTES.md`](NOTES.md)：現況、架構、資料模型、設計決策、已知限制、待辦。要繼續開發先讀這份。
 - [`CHANGELOG.md`](CHANGELOG.md)：每個版本改了什麼。
+- [`CLAUDE.md`](CLAUDE.md)：給 Claude Code 的工作規則。
 - 分支規則：git flow（`main` = 線上版本，`develop` = 開發中），細節見 NOTES。
