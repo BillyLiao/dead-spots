@@ -1,0 +1,9 @@
+{
+  "name": "dead-spots",
+  "private": true,
+  "description": "Dead Spots 指型練習簿",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}
