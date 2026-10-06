@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-06
+
 ### Added
 - 指型重複檢查：可移動指型不管在哪個把位都算同一個；有空弦的指型要位置完全一樣才算；根音標在不同弦算不同指型。
   - 新增 / 編輯時如果重複，不會直接存。跟自訂重複可以改編輯那一個；跟內建重複可以「用內建的並加入盲區」，或「存成自訂、取代內建」。
@@ -92,7 +94,8 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.2.1...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.3.0...develop
+[0.3.0]: https://github.com/BillyLiao/dead-spots/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/BillyLiao/dead-spots/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...v0.1.3
