@@ -389,8 +389,10 @@ function doRoll(){
   voiceAll();
   resetMetroPosition();
 }
-function pickVoicing(c,center,excludeId){return pickVoicingFrom(allShapes(),prio,c,center,excludeId);}
-function voiceAll(){let center=3+Math.random()*4;for(const c of roll.chords){c.v=pickVoicing(c,center);if(c.v)center=c.v.center*0.6+center*0.4;}}
+function pickVoicing(c,ctx,excludeId){return pickVoicingFrom(allShapes(),prio,c,ctx,excludeId);}
+function voiceAll(){const vs=voiceProgression(allShapes(),prio,roll.chords,3+Math.random()*4);roll.chords.forEach((c,i)=>c.v=vs[i]);roll.anchor=vs.anchor;}
+// 這組和弦實際用到的格數範圍（只算有按的格）
+function positionLabel(){const fr=roll.chords.flatMap(c=>c.v?fretted(c.v.frets):[]);if(!fr.length)return'';const lo=Math.min(...fr),hi=Math.max(...fr);return lo===hi?`第 ${lo} 格`:`第 ${lo}–${hi} 格`;}
 function barsPer(){if(ui.barsMode!=='auto')return+ui.barsMode;return roll.chords.length<=2?2:1;}
 
 const DIE_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg>';
@@ -421,10 +423,11 @@ function renderDice(){
     <div class="beats" id="beats">${Array.from({length:r.meter},(_, i)=>`<i class="${i===0?'acc':''}"></i>`).join('')}</div>
     <label class="hint" for="bars">每個和弦</label>
     <select id="bars">${[['auto','自動'],['1','1 小節'],['2','2 小節'],['4','4 小節']].map(([v,l])=>`<option value="${v}" ${ui.barsMode===v?'selected':''}>${l}</option>`).join('')}</select>
+    <span class="hint mono" id="poslabel">${positionLabel()}</span>
     <button class="btn small ghost" id="revoice">全部重抽指型</button>
   </div>
   <p class="feel">${esc(r.prog.feel)}</p>
-  <p class="hint">指型優先從你的盲區抽，其次是自訂指型，最後才是內建的。位置會盡量靠近前一個和弦。</p>`;
+  <p class="hint">第一個和弦決定把位，之後的和弦都待在同一個把位附近，並挑低音和最高音移動最少的轉位。同一個把位裡，盲區優先，其次是自訂，最後才是內建。</p>`;
 }
 function chordCard(c,i){
   let body;
@@ -723,7 +726,7 @@ document.addEventListener('click',ev=>{
   if(t.closest('#roll')){doRoll();renderDice();animateBpm();document.querySelector('.dice-head')?.classList.add('rolling');setTimeout(()=>document.querySelector('.dice-head')?.classList.remove('rolling'),500);return;}
   const st=t.closest('[data-style]');if(st){const id=st.dataset.style;ui.styles=ui.styles.includes(id)?ui.styles.filter(x=>x!==id):[...ui.styles,id];saveUi();return renderDice();}
   const lk=t.closest('[data-lock]');if(lk){const k=lk.dataset.lock;ui.locks[k]=!ui.locks[k];saveUi();return renderDice();}
-  const rv=t.closest('[data-revoice]');if(rv){const i=+rv.dataset.revoice,c=roll.chords[i],prev=roll.chords[i-1];c.v=pickVoicing(c,prev&&prev.v?prev.v.center:(c.v?c.v.center:5),c.v&&c.v.id);return renderDice();}
+  const rv=t.closest('[data-revoice]');if(rv){const i=+rv.dataset.revoice,c=roll.chords[i],prev=roll.chords[i-1];c.v=pickVoicing(c,{anchor:roll.anchor??(c.v?c.v.center:5),prev:prev&&prev.v||null},c.v&&c.v.id);return renderDice();}
   if(t.closest('#revoice')){voiceAll();return renderDice();}
   if(t.closest('#metro')){metro.on?stopMetro():startMetro();t.closest('#metro').textContent=metro.on?'■ 停止':'▶ 節拍器';return;}
   const nq=t.closest('[data-newq]');if(nq)return openEditor(null,{wantQ:nq.dataset.newq});
