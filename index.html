@@ -152,6 +152,9 @@ select{font:inherit;font-size:13px;padding:4px 8px;border:2px solid var(--ink);b
 .lcard .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:4px}
 .tag{font-size:11px;padding:0 6px;background:var(--red);align-self:flex-start}
 .tag.sug{background:transparent;border:1.5px dashed var(--ink)}
+.tag.dup{background:var(--ink);color:var(--paper)}
+.dupbar{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;border:3px solid var(--ink);background:var(--paper);padding:10px 12px;box-shadow:5px 5px 0 var(--red);font-size:14px}
+.dupwarn{border:2px solid var(--ink);background:var(--paper-2);padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:8px}
 .empty{border:2px dashed var(--ink);padding:20px;font-size:14px;margin-top:10px;background:var(--paper)}
 .backup{margin-top:30px;padding-top:14px;border-top:3px solid var(--ink);display:flex;flex-direction:column;gap:8px}
 textarea{font:12px/1.4 var(--f-mono);width:100%;min-height:90px;border:2px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);padding:8px}
@@ -298,7 +301,9 @@ async function initStore(){
 }
 
 /* ============ shape helpers ============ */
-const allShapes=()=>[...S.chords,...BUILTIN];
+const isHidden=s=>s.src==='builtin'&&!!(S.flags[s.id]&&S.flags[s.id].hidden);
+const visibleBuiltins=()=>BUILTIN.filter(b=>!isHidden(b));
+const allShapes=()=>[...S.chords,...visibleBuiltins()];
 const findShape=id=>allShapes().find(s=>s.id===id);
 const isBlind=s=>s.src==='custom'?!!s.blind:!!(S.flags[s.id]&&S.flags[s.id].blind);
 const prio=s=>isBlind(s)?6:s.src==='custom'?3:1;
@@ -310,6 +315,24 @@ function shapeTitle(s){
 function shapeDesc(s){
   const r=rels(s.frets,s.root),bi=bassIdx(s.frets);
   return invName(r[bi])+' · 根音在 '+strNo(s.root)+' 弦'+(hasOpen(s.frets)?' · 含空弦':'');
+}
+// 合併兩個重複的指型。留下自訂的那個（名稱、筆記在那邊）；被合併掉的內建指型會被隱藏，自訂的會刪掉。
+function mergePair(a,b){
+  const r=applyMerge(S,a,b,isBlind);if(!r)return null;
+  S.chords=r.state.chords;S.flags=r.state.flags;S.stats=r.state.stats;
+  recent=recent.filter(id=>id!==r.dropId);if(card&&card.id===r.dropId)card=null;
+  queueSave('lib');queueSave('stats');
+  return findShape(r.keepId);
+}
+function mergeAllDuplicates(){
+  let n=0;
+  for(let guard=0;guard<500;guard++){
+    const g=duplicateGroups(allShapes()).find(g=>g.some(s=>s.src==='custom'));
+    if(!g)break;
+    const custom=g.filter(s=>s.src==='custom'),other=g.find(s=>s!==custom[0]);
+    if(!mergePair(custom[0],other))break;n++;
+  }
+  return n;
 }
 function toggleBlind(s){
   if(s.src==='custom'){s.blind=!s.blind;}
@@ -535,7 +558,8 @@ function renderLib(){
   const pass=s=>!ui.libQ||shapeQ(s)===ui.libQ;
   const blind=all.filter(s=>isBlind(s)&&pass(s));
   const custom=S.chords.filter(s=>!isBlind(s)&&pass(s));
-  const builtin=BUILTIN.filter(s=>!isBlind(s)&&pass(s));
+  const builtin=visibleBuiltins().filter(s=>!isBlind(s)&&pass(s));
+  const dupN=duplicateGroups(all).filter(g=>g.some(s=>s.src==='custom')).length;
   const f=ui.libFilter;
   const group=(title,list,emptyMsg)=>`<div class="libgroup"><h2>${title}<span class="count">${list.length}</span></h2>${list.length?`<div class="libgrid">${list.map(libCard).join('')}</div>`:`<div class="empty">${emptyMsg}</div>`}</div>`;
   el.innerHTML=`<div class="libbar">
@@ -543,6 +567,7 @@ function renderLib(){
       <select id="libq" aria-label="依和弦性質篩選"><option value="">所有性質</option>${qs.map(q=>`<option value="${esc(q)}" ${ui.libQ===q?'selected':''}>${esc(qLabel(q))}</option>`).join('')}</select></div>
       <button class="btn primary" id="new-shape">＋ 新增指型</button>
     </div>
+    ${dupN?`<div class="dupbar"><span>有 <b>${dupN}</b> 組重複的指型：同一個指型，只是把位不同。合併後練習紀錄會加總，盲區標記和筆記會保留。</span><button class="btn small primary" id="merge-all">全部合併</button></div>`:''}
     ${f==='all'||f==='blind'?group('盲區',blind,'還沒有盲區。下面任何一個指型按「加入盲區」，或新增你自己的。'):''}
     ${f==='all'||f==='custom'?group('自訂',custom,'還沒有自訂指型。按「新增指型」記下你常用、或還不熟的按法。'):''}
     ${f==='all'||f==='builtin'?group('內建',builtin,'沒有符合的內建指型。'):''}
@@ -556,15 +581,17 @@ function libCard(s){
   const q=shapeQ(s),mr=missRate(s.id),st=S.stats[s.id];
   const sug=!isBlind(s)&&st&&st.n>=3&&mr>=0.5;
   const confirmDel=pendingDelete===s.id;
+  const dup=s.src==='custom'?findDuplicate(s,allShapes()):null;
   return`<div class="lcard${isBlind(s)?' blind':''}">
     ${diagram(s.frets,s.root)}
     <span class="q">${esc(shapeTitle(s))}</span>
     <span class="meta">${s.name?esc(qLabel(q))+' · ':''}${esc(shapeDesc(s))}<br>${st&&st.n?`練 ${st.n} · 卡 ${st.miss}`:'還沒練過'}</span>
     ${sug?'<span class="tag sug">常卡住，建議加入盲區</span>':''}
+    ${dup?`<span class="tag dup">跟「${esc(shapeTitle(dup))}」${dup.src==='builtin'?'（內建）':''}重複</span>`:''}
     <div class="acts">
       <button class="btn small" data-blind="${esc(s.id)}" aria-pressed="${isBlind(s)}">${isBlind(s)?'盲區 ✓':'加入盲區'}</button>
       ${s.src==='custom'
-        ?`<button class="btn small ghost" data-edit="${esc(s.id)}">編輯</button><button class="btn small ghost" data-del="${esc(s.id)}" style="${confirmDel?'color:var(--warn);border-color:var(--warn)':''}">${confirmDel?'確定刪除':'刪除'}</button>`
+        ?`${dup?`<button class="btn small primary" data-merge="${esc(s.id)}">合併</button>`:''}<button class="btn small ghost" data-edit="${esc(s.id)}">編輯</button><button class="btn small ghost" data-del="${esc(s.id)}" style="${confirmDel?'color:var(--warn);border-color:var(--warn)':''}">${confirmDel?'確定刪除':'刪除'}</button>`
         :`<button class="btn small ghost" data-copy="${esc(s.id)}">複製編輯</button>`}
     </div></div>`;
 }
@@ -618,13 +645,33 @@ function renderEditor(){
           <select id="ed-q"><option value="">自動判斷${det?'（'+esc(qLabel(det))+'）':''}</option>${QUAL_OPTIONS.map(q=>`<option value="${q}" ${e.fixedQ===q?'selected':''}>${esc(qLabel(q))}</option>`).join('')}</select></div>
         <div class="field"><label class="label" for="ed-notes">筆記</label><textarea id="ed-notes" rows="2" placeholder="哪裡卡、手指怎麼擺">${esc(e.notes)}</textarea></div>
         <label class="tog" for="ed-blind">標成盲區<input type="checkbox" id="ed-blind" ${e.blind?'checked':''}></label>
+        ${dupWarning(e)}
         <div class="ed-acts"><button class="btn ghost" id="ed-cancel">取消</button><button class="btn primary" id="ed-save" ${valid?'':'disabled'}>儲存</button></div>
       </div>
     </div></div></div>`;
 }
+function dupWarning(e){
+  if(!e.dup)return'';
+  const d=findShape(e.dup);if(!d)return'';
+  const title=esc(shapeTitle(d));
+  return d.src==='builtin'
+    ?`<div class="dupwarn" role="alert"><b>這是內建的「${title}」</b>，只是把位不同。<div class="row"><button class="btn small" id="dup-use-builtin">用內建的${isBlind(d)?'':'，並加入盲區'}</button><button class="btn small ghost" id="dup-replace">存成自訂，取代內建</button></div><span class="hint">取代後內建的會隱藏，練習紀錄轉到你的這一個。</span></div>`
+    :`<div class="dupwarn" role="alert"><b>指型庫裡已經有「${title}」</b>，只是把位不同。<div class="row"><button class="btn small" id="dup-open">改編輯那一個</button></div></div>`;
+}
+function draftData(e){
+  return{id:e.id||('c-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),name:e.name.trim(),frets:[...e.frets],root:e.root,notes:e.notes.trim(),fixedQ:e.fixedQ,blind:e.blind,src:'custom',created:Date.now()};
+}
+function commitDraft(data){
+  const i=S.chords.findIndex(c=>c.id===data.id);
+  if(i>=0){data.created=S.chords[i].created||data.created;S.chords[i]=data;}else S.chords.unshift(data);
+  queueSave('lib');
+  return i>=0;
+}
+function afterSave(msg){closeEditor();toast(msg);if(roll&&roll.chords.some(c=>!c.v))voiceAll();renderAll();}
 function editorClick(t){
   const e=editing;
   const cell=t.closest('[data-cell]'),os=t.closest('[data-os]'),tool=t.closest('[data-tool]');
+  if(cell||os||t.closest('#clr'))e.dup=null;
   if(tool){e.tool=tool.dataset.tool;return renderEditor();}
   if(os){const i=+os.dataset.os;
     if(e.tool==='root'){if(e.frets[i]===0){e.root=i;}return renderEditor();}
@@ -637,14 +684,16 @@ function editorClick(t){
   if(t.closest('#st-dn')){e.start=Math.min(14,e.start+1);return renderEditor();}
   if(t.closest('#clr')){e.frets=[-1,-1,-1,-1,-1,-1];e.root=null;return renderEditor();}
   if(t.closest('#ed-cancel')||t.id==='ov'){return closeEditor();}
+  if(t.closest('#dup-open')){const d=findShape(e.dup);if(d)openEditor(d);return;}
+  if(t.closest('#dup-use-builtin')){const d=findShape(e.dup);if(d&&!isBlind(d))toggleBlind(d);return afterSave('已改用內建指型'+(d&&isBlind(d)?'（盲區）':''));}
+  if(t.closest('#dup-replace')){const d=findShape(e.dup);const data=draftData(e);commitDraft(data);if(d)mergePair(data,d);return afterSave('已存成自訂，取代內建指型');}
   if(t.closest('#ed-save')){
     if(e.root==null||e.frets[e.root]<0)return;
-    const data={id:e.id||('c-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),name:e.name.trim(),frets:[...e.frets],root:e.root,notes:e.notes.trim(),fixedQ:e.fixedQ,blind:e.blind,src:'custom',created:Date.now()};
-    const i=S.chords.findIndex(c=>c.id===data.id);
-    if(i>=0){data.created=S.chords[i].created||data.created;S.chords[i]=data;}else S.chords.unshift(data);
-    queueSave('lib');closeEditor();toast(i>=0?'已更新':'已加入指型庫');
-    if(roll&&roll.chords.some(c=>!c.v))voiceAll();
-    renderAll();
+    const data=draftData(e);
+    const d=findDuplicate(data,allShapes());
+    if(d){e.dup=d.id;return renderEditor();}
+    const updated=commitDraft(data);
+    afterSave(updated?'已更新':'已加入指型庫');
   }
 }
 
@@ -689,8 +738,10 @@ document.addEventListener('click',ev=>{
   if(t.closest('#new-shape'))return openEditor(null);
   const ed=t.closest('[data-edit]');if(ed)return openEditor(findShape(ed.dataset.edit));
   const cp=t.closest('[data-copy]');if(cp)return openEditor(findShape(cp.dataset.copy));
+  const mg=t.closest('[data-merge]');if(mg){const s=findShape(mg.dataset.merge),d=s&&findDuplicate(s,allShapes());if(s&&d&&mergePair(s,d))toast('已合併');return renderLib();}
+  if(t.closest('#merge-all')){const n=mergeAllDuplicates();toast('合併了 '+n+' 組');return renderLib();}
   const dl=t.closest('[data-del]');if(dl){const id=dl.dataset.del;
-    if(pendingDelete===id){S.chords=S.chords.filter(c=>c.id!==id);delete S.stats[id];pendingDelete=null;queueSave('lib');queueSave('stats');toast('已刪除');}
+    if(pendingDelete===id){const gone=S.chords.find(c=>c.id===id);S.chords=S.chords.filter(c=>c.id!==id);delete S.stats[id];if(gone)S.flags=unhideCovered(S.flags,gone,BUILTIN);pendingDelete=null;queueSave('lib');queueSave('stats');toast('已刪除');}
     else{pendingDelete=id;setTimeout(()=>{if(pendingDelete===id){pendingDelete=null;if(ui.tab==='lib')renderLib();}},3000);}
     return renderLib();}
   if(t.closest('#exp')){const txt=JSON.stringify({chords:S.chords,flags:S.flags,stats:S.stats},null,1);const box=document.getElementById('iobox');box.value=txt;
