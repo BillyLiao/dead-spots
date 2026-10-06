@@ -59,7 +59,7 @@ test('pickVoicingFrom：性質完全符合的優先於替代性質',()=>{
 });
 
 test('pickVoicingFrom：優先權高的（盲區）被選中的機率較高',()=>{
-  const a=mk('blind',[-1,3,-1,4,5,-1],1),b=mk('plain',[1,-1,2,2,1,-1],0);
+  const a=mk('blind',[-1,3,-1,4,5,-1],1),b=mk('plain',[-1,3,5,4,5,3],1);  // 兩個都在第 3–5 格
   const prio=s=>s.id==='blind'?6:1;let hits=0;const rand=seeded(9);
   for(let i=0;i<1000;i++)if(C.pickVoicingFrom([a,b],prio,chordOf(0,'maj7'),5,null,rand).id==='blind')hits++;
   assert.ok(hits>700,'盲區只被選了 '+hits+' 次');

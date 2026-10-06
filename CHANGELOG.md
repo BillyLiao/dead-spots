@@ -7,6 +7,20 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-06
+
+### Added
+- 指型重複檢查：可移動指型不管在哪個把位都算同一個；有空弦的指型要位置完全一樣才算；根音標在不同弦算不同指型。
+  - 新增 / 編輯時如果重複，不會直接存。跟自訂重複可以改編輯那一個；跟內建重複可以「用內建的並加入盲區」，或「存成自訂、取代內建」。
+  - 指型庫會標出已經存在的重複，可以單一合併或全部合併：練習紀錄加總、名稱補空、筆記合併、盲區取聯集。
+  - 被自訂指型取代的內建指型會隱藏；刪掉那個自訂指型後，內建的會重新出現。
+  - 指型庫和指型的標題不再轉大寫。
+
+### Changed
+- 擲骰子改成「同一個把位」：第一個和弦決定把位，之後每個和弦只在附近（最近距離 1.5 格內）找指型，再挑低音和最高音移動最少的轉位。下方顯示這組和弦用到第幾格。
+- 「換指型」會換成別的指型（有其他選擇時），並維持在同一個把位。
+- NOTES 補上 GitHub Pages 沒有自動部署時的檢查與手動觸發方式。
+
 ## [0.2.1] - 2026-10-06
 
 ### Fixed
@@ -80,7 +94,8 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.2.1...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.3.0...develop
+[0.3.0]: https://github.com/BillyLiao/dead-spots/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/BillyLiao/dead-spots/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...v0.1.3

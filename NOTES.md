@@ -2,7 +2,7 @@
 
 要繼續開發時先讀這份。這裡記的是**現況、原因、還沒做的事**；每次改了什麼記在 [`CHANGELOG.md`](CHANGELOG.md)。
 
-最後更新：2026-10-05（v0.2.0）
+最後更新：2026-10-06（v0.3.0）
 
 ---
 
@@ -39,6 +39,13 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 - 機器上沒有安裝 `git-flow` 工具，用一般 git 指令操作。要裝的話：`brew install git-flow-avh`。
 
 **只有 merge 到 main 才會上線。** develop 上的東西線上看不到。要先看效果，直接用瀏覽器開本機的 `index.html`。
+
+**發 release 後要確認有部署成功。** v0.2.0 推上 main 之後，GitHub Pages 沒有自動觸發部署（原因不明）。檢查方式和手動重新部署：
+
+```sh
+gh api repos/BillyLiao/dead-spots/pages/builds/latest -q '.status+" "+.commit[0:7]'   # commit 要是 main 最新的
+gh api -X POST repos/BillyLiao/dead-spots/pages/builds                                # 沒有的話手動觸發
+```
 
 ---
 
@@ -95,6 +102,7 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 }
 ```
 - 內建指型的盲區標記存在 `S.flags[id] = {blind:true}`（內建資料本身不能改）。
+- 被自訂指型取代的內建指型：`S.flags[id] = {hidden:true}`，`allShapes()` 不會回傳它。
 - 練習紀錄存在 `S.stats[id] = {n, miss, last}`。
 
 **localStorage keys**：
@@ -108,7 +116,12 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 - **級數**：每條弦的音高（`OPEN[i] + fret`）減掉根音，取 mod 12。標籤會看上下文：沒有三音時 2 → `2`、5 → `4`；有 5 度時 6 → `♯11`；dim7 的 9 → `°7`。
 - **性質判斷**：先拿掉 1 和完全五度，剩下的半音集合去查 `QTABLE`。這樣 shell（省略五度）也能判斷。查不到就顯示「未辨識」，可以手動指定。
 - **可移動 vs 開放弦**：有空弦的指型不能平移，只能用在原本的調。
-- **擲骰子挑指型**（`pickVoicing`）：權重 = `prio` ×（性質完全符合 ×3，否則依 `COMPAT` 順位遞減）÷ 離前一個和弦的距離。`prio`：盲區 6、自訂 3、內建 1。
+- **同一個指型**（`shapeKey`）：可移動指型只比相對格位＋根音弦，所以不同把位算同一個；有空弦的要完全一樣；根音弦不同算不同指型（級數不同）。新增時用 `findDuplicate` 擋重複，合併用 `applyMerge`（純函式，留自訂的、內建的隱藏）。
+- **擲骰子挑指型**（`voiceProgression` → `pickVoicingFrom`）：
+  1. 第一個和弦落在隨機的第 3–7 格附近，它的位置就是這組的把位（anchor）。
+  2. 每個和弦列出所有「指型 × 可放的把位」；性質完全符合的如果不太遠（比最近的多 3 格以內）就只用完全符合的。
+  3. 只留離把位最近的一圈（最近距離 + 1.5 格內）。
+  4. 圈內權重 = `prio`（盲區 6、自訂 3、內建 1）× 性質符合度 × 轉位需求 ÷ 離把位距離 ÷ 聲部移動（`voiceMove`：低音＋最高音移動的半音數）。
 - **練習出題**（`drillWeight`）：`prio × (1 + 2 × (卡住+1)/(次數+2))`，沒練過的再 ×1.3，最近 4 題大幅降權。
 - **BPM**：`中心 ± 幅度 × (rand + rand − 1)`，三角分布，中間值機率最高。
 
@@ -125,6 +138,8 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 | Icon「斷掉的延音」 | 第一輪（和弦圖、骰子、霧、劃掉的格子）全部否決；第二輪定案，原則是要符合 dead spot 的意思＋ Zine 配色 |
 | 先存 localStorage，不做登入 | 先求能用；跨裝置的需求還不確定 |
 | GitHub Pages 是主要版本 | 兩個版本的資料不互通，同時用會讓指型散在兩邊 |
+| 同指型不同把位算同一個 | 網站只記級數、不記音名，可移動指型移到哪都一樣；重複會讓盲區練習重複出題、擲骰子權重加倍 |
+| 合併時留自訂、隱藏內建 | 自訂的有你的名稱和筆記；內建資料不能改，只能用旗標隱藏 |
 | 純邏輯拆到 `core.js`，其餘留在 `index.html` | 為了能用 Node 測試；仍然不需要 build |
 
 ---
@@ -139,6 +154,7 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 - [ ] 和弦名稱的拼法：重升重降會改寫，但單一升降保留樂理拼法（例如 D♭ 大調的 ♭VII 寫成 C♭，不是 B）。
 - [ ] 匯入 JSON 只做了基本檢查（frets 長度、root 是整數）。
 - [ ] 練習紀錄（`stats`）會一直變大，目前沒有清理機制。
+- [ ] 低把位（第 1–3 格）的和弦，內建庫裡常常沒有可移動的指型（例如 F 大調在第 1 格時，Am 最近也要到第 5 格），擲骰子只好跳把位。補上開放弦的常用和弦（Am、Em、C、G、D…）就能改善。
 - [ ] 指板編輯器一次只看 6 格，跨度更大的指型要上下移動。
 
 ## 待辦 / 想法（沒有排序）
@@ -149,7 +165,7 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 - **自訂和弦進行**：除了擲骰子，也能存自己寫的進行（例如 EP 裡的歌）。
 - **統計頁**：依性質、轉位、根音弦看卡住率，找出真正的盲區類型（例如「所有第二轉位都卡」）。可以拿來寫 Obsidian 的 `Guitar/能力評估.md`。
 - **計時模式**：限時按出來，練換和弦的速度。
-- **更多內建指型**：drop 2 / drop 3、更多 shoegaze 開放弦和弦。
+- **更多內建指型**：開放弦的常用和弦（補低把位的缺口）、drop 2 / drop 3、更多 shoegaze 開放弦和弦。
 
 ---
 

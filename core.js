@@ -146,21 +146,56 @@ function buildChords(prog,key){
     return{...c,L,pc,name,v:null};
   });
 }
-// 從 shapes 裡挑一個能彈 c 的指型並放到格位上。prioFn(shape) 回傳優先權（盲區 6、自訂 3、內建 1）。
-function pickVoicingFrom(shapes,prioFn,c,center,excludeId,rand=Math.random){
-  const chain=COMPAT[c.q]||[c.q],cands=[];
+// 兩個指型之間的聲部移動：低音（實際最低音）和最高音各移動幾個半音。
+function voiceMove(a,b){
+  const p=f=>f.map((x,i)=>x<0?null:OPEN[i]+x).filter(x=>x!=null);
+  const pa=p(a),pb=p(b);if(!pa.length||!pb.length)return 0;
+  return Math.abs(Math.min(...pa)-Math.min(...pb))+Math.abs(Math.max(...pa)-Math.max(...pb));
+}
+// 從 shapes 裡挑一個能彈和弦 c 的指型，並決定放在哪一格。
+// ctx.anchor：這組和弦的把位（格數中心）；ctx.prev：前一個和弦的指型（可省略）。也可以直接傳數字當 anchor。
+// 規則：
+// 1. 列出所有「指型 × 可放的把位」。換指型時（excludeId）有別的選擇就先排除目前這個。
+// 2. 性質完全符合的指型如果離把位不遠（比最近的候選多 3 格以內），只用完全符合的。
+// 3. 只留離把位最近的那一圈（最近距離 + 1.5 格內），讓整組和弦待在同一個把位。
+// 4. 圈內依 優先權（盲區 6、自訂 3、內建 1）× 性質符合度 × 轉位需求 × 聲部移動少 加權抽一個。
+function pickVoicingFrom(shapes,prioFn,c,ctx,excludeId,rand=Math.random){
+  if(typeof ctx==='number')ctx={anchor:ctx};
+  const anchor=ctx.anchor,prev=ctx.prev||null;
+  const chain=COMPAT[c.q]||[c.q];
+  let all=[];
   for(const sh of shapes){
-    const q=shapeQ(sh),idx=chain.indexOf(q);if(idx<0)continue;
-    const pl=placements(sh,c.pc);if(!pl.length)continue;
-    let best=pl[0],bd=1e9;for(const d of pl){const dist=Math.abs(centerOf(shifted(sh.frets,d))-center);if(dist<bd){bd=dist;best=d;}}
-    let w=prioFn(sh)*(idx===0?3:1/(1+idx))/(1+bd/4);
-    if(c.inv){const r=rels(sh.frets,sh.root);if(invCode(r[bassIdx(sh.frets)])===c.inv)w*=5;else w*=0.4;}
-    if(sh.id===excludeId)w*=0.03;
-    cands.push({sh,d:best,w});
+    const idx=chain.indexOf(shapeQ(sh));if(idx<0)continue;
+    for(const d of placements(sh,c.pc)){
+      const f=shifted(sh.frets,d),center=centerOf(f);
+      all.push({sh,f,idx,center,dist:Math.abs(center-anchor)});
+    }
   }
-  if(!cands.length)return null;
-  const p=weighted(cands,rand),f=shifted(p.sh.frets,p.d);
-  return{id:p.sh.id,frets:f,root:p.sh.root,q:shapeQ(p.sh),center:centerOf(f)};
+  if(excludeId&&all.some(x=>x.sh.id!==excludeId))all=all.filter(x=>x.sh.id!==excludeId);
+  if(!all.length)return null;
+  const minDist=xs=>Math.min(...xs.map(x=>x.dist));
+  const exact=all.filter(x=>x.idx===0);
+  let pool=exact.length&&minDist(exact)<=minDist(all)+3?exact:all;
+  const near=minDist(pool);pool=pool.filter(x=>x.dist<=near+1.5);
+  for(const x of pool){
+    let w=prioFn(x.sh)*(x.idx===0?3:1/(1+x.idx))/(1+x.dist/2);
+    if(c.inv){const r=rels(x.sh.frets,x.sh.root);w*=invCode(r[bassIdx(x.sh.frets)])===c.inv?5:0.4;}
+    if(prev)w/=1+voiceMove(prev.frets,x.f)/3;
+    x.w=w;
+  }
+  const p=weighted(pool,rand);
+  return{id:p.sh.id,frets:p.f,root:p.sh.root,q:shapeQ(p.sh),center:p.center};
+}
+// 幫一整組和弦挑指型：第一個和弦落在 startAnchor 附近並決定這組的把位，之後每個和弦都待在這個把位、參考前一個和弦的聲部。
+function voiceProgression(shapes,prioFn,chords,startAnchor,rand=Math.random){
+  let anchor=startAnchor,prev=null;const out=[];
+  chords.forEach((c,i)=>{
+    const v=pickVoicingFrom(shapes,prioFn,c,{anchor,prev},null,rand);
+    if(v){if(!prev)anchor=v.center;prev=v;}
+    out.push(v);
+  });
+  out.anchor=anchor;
+  return out;
 }
 // 盲區練習的出題權重。recentIndex：最近出過的第幾題（-1 = 沒出過）。
 function drillWeightOf(prio,n,miss,recentIndex){
@@ -170,6 +205,65 @@ function drillWeightOf(prio,n,miss,recentIndex){
   return w;
 }
 
+/* ============ shape identity ============ */
+// 判斷是不是同一個指型：
+// - 可移動指型（沒有空弦）：不管在哪個把位都算同一個，只比相對格位。
+// - 有空弦的指型：空弦不會跟著移動，位置不同聲音就不同，要完全一樣才算。
+// - 根音標在不同弦，級數就不同（例如 Am7 vs C6），算不同指型。
+function shapeKey(sh){
+  const f=sh.frets;
+  if(hasOpen(f))return'o|'+f.join(',')+'|r'+sh.root;
+  const fr=fretted(f),lo=fr.length?Math.min(...fr):0;
+  return'm|'+f.map(x=>x<0?'x':x-lo).join(',')+'|r'+sh.root;
+}
+const sameShape=(a,b)=>shapeKey(a)===shapeKey(b);
+function findDuplicate(sh,shapes){return shapes.find(o=>o.id!==sh.id&&sameShape(o,sh))||null;}
+function duplicateGroups(shapes){
+  const m=new Map();
+  for(const s of shapes){const k=shapeKey(s);if(!m.has(k))m.set(k,[]);m.get(k).push(s);}
+  return[...m.values()].filter(g=>g.length>1);
+}
+// 兩個重複指型留哪一個：有自訂的就留自訂（名稱、筆記在那邊）；都是自訂就留比較早建立的。兩個都是內建回傳 null。
+function pickKeeper(a,b){
+  if(a.src==='builtin'&&b.src==='builtin')return null;
+  if(a.src==='builtin')return{keep:b,drop:a};
+  if(b.src==='builtin')return{keep:a,drop:b};
+  return(a.created||0)<=(b.created||0)?{keep:a,drop:b}:{keep:b,drop:a};
+}
+// 合併後留下的指型（新物件）：名稱用留下那個的、沒有就用另一個的；筆記合併去重；任一個是盲區就是盲區。
+function mergeShapeData(keep,drop,dropBlind){
+  const notes=[...new Set([keep.notes,drop.notes].map(x=>(x||'').trim()).filter(Boolean))];
+  return{...keep,name:keep.name||drop.name||'',notes:notes.join(' / '),blind:!!keep.blind||!!dropBlind,fixedQ:keep.fixedQ||drop.fixedQ||''};
+}
+function mergeStats(a,b){
+  if(!a&&!b)return null;
+  const z={n:0,miss:0,last:0};a=a||z;b=b||z;
+  return{n:a.n+b.n,miss:a.miss+b.miss,last:Math.max(a.last||0,b.last||0)};
+}
+
+// 合併兩個重複指型，回傳新的 {chords, flags, stats}（不改傳入的 state）。
+// 留下自訂的那個；被合併掉的若是內建就標成隱藏，若是自訂就刪掉。isBlindFn(shape) 判斷盲區。
+function applyMerge(state,a,b,isBlindFn){
+  const plan=pickKeeper(a,b);if(!plan)return null;
+  const{keep,drop}=plan;
+  if(!state.chords.some(c=>c.id===keep.id))return null;
+  const merged=mergeShapeData(keep,drop,isBlindFn(drop));
+  let chords=state.chords.map(c=>c.id===keep.id?merged:c);
+  const flags={...state.flags},stats={...state.stats};
+  const st=mergeStats(stats[keep.id],stats[drop.id]);if(st)stats[keep.id]=st;
+  delete stats[drop.id];
+  if(drop.src==='custom')chords=chords.filter(c=>c.id!==drop.id);
+  else flags[drop.id]={hidden:true};
+  return{state:{chords,flags,stats},keepId:keep.id,dropId:drop.id};
+}
+// 刪掉一個自訂指型時，讓之前被它取代（隱藏）的內建指型重新出現。
+function unhideCovered(flags,deleted,builtins){
+  const out={...flags};
+  for(const b of builtins)if(out[b.id]&&out[b.id].hidden&&sameShape(b,deleted))delete out[b.id];
+  return out;
+}
+
 if(typeof module!=='undefined')module.exports={OPEN,LETTERS,NAT,PCNAME,mod,spell,spellSimple,parseKey,QD,qLabel,QTABLE,QUAL_OPTIONS,rootMidi,rels,relSet,detectQ,fam,degLabel,bassIdx,topIdx,invName,invCode,strNo,fretted,hasOpen,centerOf,placements,shifted,noteNameRel,
   BUILTIN,STYLES,STYLE_BPM,PROGS,MAJOR_KEYS,MINOR_KEYS,parseRoman,prettyRn,COMPAT,
-  shapeQ,weighted,genBpm,pickKey,buildChords,pickVoicingFrom,drillWeightOf};
+  shapeQ,weighted,genBpm,pickKey,buildChords,pickVoicingFrom,voiceMove,voiceProgression,drillWeightOf,
+  shapeKey,sameShape,findDuplicate,duplicateGroups,pickKeeper,mergeShapeData,mergeStats,applyMerge,unhideCovered};
