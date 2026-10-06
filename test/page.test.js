@@ -27,3 +27,13 @@ test('core.js 和內嵌 script 一起在同一個全域執行時不會出錯',()
   // 內嵌 script 要 DOM 才能跑，這裡只確認 core 的全域名稱在同一個 context 裡看得到
   assert.equal(new vm.Script('typeof pickVoicingFrom+typeof BUILTIN').runInContext(ctx),'functionobject');
 });
+
+test('回歸：和弦名稱和級數不能被 CSS 轉成大寫（m7 會變 M7、vi 會變 VI）',()=>{
+  const css=[...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m=>m[1]).join('\n');
+  for(const sel of ['.fact .v','.ccard .nm','.ccard .rn','.prompt-big','.reveal-meta .nm','.lcard .q','.detect .big']){
+    const esc=sel.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const rules=[...css.matchAll(new RegExp('(?:^|[}\\n,])\\s*'+esc+'\\s*[{,][^}]*}','g'))].map(m=>m[0]);
+    assert.ok(rules.length>0,sel+' 找不到樣式');
+    for(const r of rules)assert.ok(!/text-transform\s*:\s*uppercase/.test(r),sel+' 有 uppercase：'+r.slice(0,80));
+  }
+});

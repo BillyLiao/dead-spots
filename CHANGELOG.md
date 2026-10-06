@@ -7,6 +7,11 @@
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-06
+
+### Fixed
+- 和弦名稱和級數不再被轉成大寫：`Cm7` 原本顯示成 `CM7`（看起來像 Cmaj7），級數 `vi` 顯示成 `VI`（看起來像大三和弦）。
+
 ## [0.2.0] - 2026-10-05
 
 ### Added
@@ -75,7 +80,8 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.2.0...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.2.1...develop
+[0.2.1]: https://github.com/BillyLiao/dead-spots/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/BillyLiao/dead-spots/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/BillyLiao/dead-spots/compare/v0.1.1...v0.1.2
