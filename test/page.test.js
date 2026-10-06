@@ -37,3 +37,15 @@ test('回歸：和弦名稱和級數不能被 CSS 轉成大寫（m7 會變 M7、
     for(const r of rules)assert.ok(!/text-transform\s*:\s*uppercase/.test(r),sel+' 有 uppercase：'+r.slice(0,80));
   }
 });
+
+test('index.html 引用的本機檔案都有列在部署清單裡（不然上線會 404）',()=>{
+  const deploy=fs.readFileSync(path.join(__dirname,'..','.github','workflows','deploy.yml'),'utf8');
+  const cp=deploy.match(/cp ([^\n]+) _site\//);assert.ok(cp,'deploy.yml 找不到 cp ... _site/');
+  const shipped=new Set(cp[1].trim().split(/\s+/));
+  const refs=[...html.matchAll(/(?:src|href)="([^"#:]+)"/g)].map(m=>m[1]).filter(r=>!r.startsWith('//'));
+  assert.ok(refs.length>0);
+  for(const r of refs){
+    assert.ok(shipped.has(r),r+' 沒有列在 deploy.yml 的部署清單');
+    assert.ok(fs.existsSync(path.join(__dirname,'..',r)),r+' 檔案不存在');
+  }
+});
