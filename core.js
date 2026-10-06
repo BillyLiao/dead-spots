@@ -170,6 +170,65 @@ function drillWeightOf(prio,n,miss,recentIndex){
   return w;
 }
 
+/* ============ shape identity ============ */
+// 判斷是不是同一個指型：
+// - 可移動指型（沒有空弦）：不管在哪個把位都算同一個，只比相對格位。
+// - 有空弦的指型：空弦不會跟著移動，位置不同聲音就不同，要完全一樣才算。
+// - 根音標在不同弦，級數就不同（例如 Am7 vs C6），算不同指型。
+function shapeKey(sh){
+  const f=sh.frets;
+  if(hasOpen(f))return'o|'+f.join(',')+'|r'+sh.root;
+  const fr=fretted(f),lo=fr.length?Math.min(...fr):0;
+  return'm|'+f.map(x=>x<0?'x':x-lo).join(',')+'|r'+sh.root;
+}
+const sameShape=(a,b)=>shapeKey(a)===shapeKey(b);
+function findDuplicate(sh,shapes){return shapes.find(o=>o.id!==sh.id&&sameShape(o,sh))||null;}
+function duplicateGroups(shapes){
+  const m=new Map();
+  for(const s of shapes){const k=shapeKey(s);if(!m.has(k))m.set(k,[]);m.get(k).push(s);}
+  return[...m.values()].filter(g=>g.length>1);
+}
+// 兩個重複指型留哪一個：有自訂的就留自訂（名稱、筆記在那邊）；都是自訂就留比較早建立的。兩個都是內建回傳 null。
+function pickKeeper(a,b){
+  if(a.src==='builtin'&&b.src==='builtin')return null;
+  if(a.src==='builtin')return{keep:b,drop:a};
+  if(b.src==='builtin')return{keep:a,drop:b};
+  return(a.created||0)<=(b.created||0)?{keep:a,drop:b}:{keep:b,drop:a};
+}
+// 合併後留下的指型（新物件）：名稱用留下那個的、沒有就用另一個的；筆記合併去重；任一個是盲區就是盲區。
+function mergeShapeData(keep,drop,dropBlind){
+  const notes=[...new Set([keep.notes,drop.notes].map(x=>(x||'').trim()).filter(Boolean))];
+  return{...keep,name:keep.name||drop.name||'',notes:notes.join(' / '),blind:!!keep.blind||!!dropBlind,fixedQ:keep.fixedQ||drop.fixedQ||''};
+}
+function mergeStats(a,b){
+  if(!a&&!b)return null;
+  const z={n:0,miss:0,last:0};a=a||z;b=b||z;
+  return{n:a.n+b.n,miss:a.miss+b.miss,last:Math.max(a.last||0,b.last||0)};
+}
+
+// 合併兩個重複指型，回傳新的 {chords, flags, stats}（不改傳入的 state）。
+// 留下自訂的那個；被合併掉的若是內建就標成隱藏，若是自訂就刪掉。isBlindFn(shape) 判斷盲區。
+function applyMerge(state,a,b,isBlindFn){
+  const plan=pickKeeper(a,b);if(!plan)return null;
+  const{keep,drop}=plan;
+  if(!state.chords.some(c=>c.id===keep.id))return null;
+  const merged=mergeShapeData(keep,drop,isBlindFn(drop));
+  let chords=state.chords.map(c=>c.id===keep.id?merged:c);
+  const flags={...state.flags},stats={...state.stats};
+  const st=mergeStats(stats[keep.id],stats[drop.id]);if(st)stats[keep.id]=st;
+  delete stats[drop.id];
+  if(drop.src==='custom')chords=chords.filter(c=>c.id!==drop.id);
+  else flags[drop.id]={hidden:true};
+  return{state:{chords,flags,stats},keepId:keep.id,dropId:drop.id};
+}
+// 刪掉一個自訂指型時，讓之前被它取代（隱藏）的內建指型重新出現。
+function unhideCovered(flags,deleted,builtins){
+  const out={...flags};
+  for(const b of builtins)if(out[b.id]&&out[b.id].hidden&&sameShape(b,deleted))delete out[b.id];
+  return out;
+}
+
 if(typeof module!=='undefined')module.exports={OPEN,LETTERS,NAT,PCNAME,mod,spell,spellSimple,parseKey,QD,qLabel,QTABLE,QUAL_OPTIONS,rootMidi,rels,relSet,detectQ,fam,degLabel,bassIdx,topIdx,invName,invCode,strNo,fretted,hasOpen,centerOf,placements,shifted,noteNameRel,
   BUILTIN,STYLES,STYLE_BPM,PROGS,MAJOR_KEYS,MINOR_KEYS,parseRoman,prettyRn,COMPAT,
-  shapeQ,weighted,genBpm,pickKey,buildChords,pickVoicingFrom,drillWeightOf};
+  shapeQ,weighted,genBpm,pickKey,buildChords,pickVoicingFrom,drillWeightOf,
+  shapeKey,sameShape,findDuplicate,duplicateGroups,pickKeeper,mergeShapeData,mergeStats,applyMerge,unhideCovered};
