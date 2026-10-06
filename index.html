@@ -155,6 +155,7 @@ select{font:inherit;font-size:13px;padding:4px 8px;border:2px solid var(--ink);b
 .tag.dup{background:var(--ink);color:var(--paper)}
 .dupbar{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;border:3px solid var(--ink);background:var(--paper);padding:10px 12px;box-shadow:5px 5px 0 var(--red);font-size:14px}
 .dupwarn{border:2px solid var(--ink);background:var(--paper-2);padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:8px}
+.dupwarn p{margin:0}
 .empty{border:2px dashed var(--ink);padding:20px;font-size:14px;margin-top:10px;background:var(--paper)}
 .backup{margin-top:30px;padding-top:14px;border-top:3px solid var(--ink);display:flex;flex-direction:column;gap:8px}
 textarea{font:12px/1.4 var(--f-mono);width:100%;min-height:90px;border:2px solid var(--ink);border-radius:0;background:var(--paper);color:var(--ink);padding:8px}
@@ -658,8 +659,8 @@ function dupWarning(e){
   const d=findShape(e.dup);if(!d)return'';
   const title=esc(shapeTitle(d));
   return d.src==='builtin'
-    ?`<div class="dupwarn" role="alert"><b>這是內建的「${title}」</b>，只是把位不同。<div class="row"><button class="btn small" id="dup-use-builtin">用內建的${isBlind(d)?'':'，並加入盲區'}</button><button class="btn small ghost" id="dup-replace">存成自訂，取代內建</button></div><span class="hint">取代後內建的會隱藏，練習紀錄轉到你的這一個。</span></div>`
-    :`<div class="dupwarn" role="alert"><b>指型庫裡已經有「${title}」</b>，只是把位不同。<div class="row"><button class="btn small" id="dup-open">改編輯那一個</button></div></div>`;
+    ?`<div class="dupwarn" role="alert"><p><b>這是內建的「${title}」</b>，只是把位不同。</p><div class="row"><button class="btn small" id="dup-use-builtin">用內建的${isBlind(d)?'':'，並加入盲區'}</button><button class="btn small ghost" id="dup-replace">存成自訂，取代內建</button></div><span class="hint">取代後內建的會隱藏，練習紀錄轉到你的這一個。</span></div>`
+    :`<div class="dupwarn" role="alert"><p><b>指型庫裡已經有「${title}」</b>，只是把位不同。</p><div class="row"><button class="btn small" id="dup-open">改編輯那一個</button></div></div>`;
 }
 function draftData(e){
   return{id:e.id||('c-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),name:e.name.trim(),frets:[...e.frets],root:e.root,notes:e.notes.trim(),fixedQ:e.fixedQ,blind:e.blind,src:'custom',created:Date.now()};
