@@ -63,7 +63,7 @@ gh api -X POST repos/BillyLiao/dead-spots/pages/builds                          
 | 區塊 | 內容 |
 |---|---|
 | `music core`（core.js） | 調弦（`OPEN`）、拼音（`spell`）、級數計算（`rels` / `degLabel` / `fam`）、和弦性質判斷（`QTABLE` / `detectQ`）、轉位、指型平移（`placements`） |
-| `builtin shapes`（core.js） | 內建 40 個指型 `BUILTIN_RAW` |
+| `builtin shapes`（core.js） | 內建 66 個指型 `BUILTIN_RAW`（40 個可移動＋開放弦，加上 26 個開放弦常用和弦） |
 | `progressions`（core.js） | 33 種和弦進行 `PROGS`、風格 BPM `STYLE_BPM`、調性權重、羅馬數字解析、性質替代表 `COMPAT` |
 | `shared pure helpers`（core.js） | `weighted`、`genBpm`、`pickKey`、`buildChords`、`pickVoicingFrom`（挑指型）、`drillWeightOf`（出題權重）、`spellSimple` |
 | `state & storage` | 狀態 `S` / `ui`、localStorage、Claude db 同步 |
@@ -154,7 +154,7 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 - [ ] 和弦名稱的拼法：重升重降會改寫，但單一升降保留樂理拼法（例如 D♭ 大調的 ♭VII 寫成 C♭，不是 B）。
 - [ ] 匯入 JSON 只做了基本檢查（frets 長度、root 是整數）。
 - [ ] 練習紀錄（`stats`）會一直變大，目前沒有清理機制。
-- [ ] 低把位（第 1–3 格）的和弦，內建庫裡常常沒有可移動的指型（例如 F 大調在第 1 格時，Am 最近也要到第 5 格），擲骰子只好跳把位。補上開放弦的常用和弦（Am、Em、C、G、D…）就能改善。
+- [ ] 低把位的缺口：v0.4.0 補了 26 個開放弦常用和弦，C / G / D / A 調在低把位已經能待在同一個把位。但升記號多的調還是有缺口，例如 E 大調的 C♯m 最低也要到第 4–6 格。
 - [ ] 指板編輯器一次只看 6 格，跨度更大的指型要上下移動。
 
 ## 待辦 / 想法（沒有排序）
@@ -165,7 +165,7 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 - **自訂和弦進行**：除了擲骰子，也能存自己寫的進行（例如 EP 裡的歌）。
 - **統計頁**：依性質、轉位、根音弦看卡住率，找出真正的盲區類型（例如「所有第二轉位都卡」）。可以拿來寫 Obsidian 的 `Guitar/能力評估.md`。
 - **計時模式**：限時按出來，練換和弦的速度。
-- **更多內建指型**：開放弦的常用和弦（補低把位的缺口）、drop 2 / drop 3、更多 shoegaze 開放弦和弦。
+- **更多內建指型**：drop 2 / drop 3、更多 shoegaze 開放弦和弦（例如 Gadd9、Em(add9)）。
 
 ---
 

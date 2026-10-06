@@ -68,3 +68,19 @@ test('voiceProgression：庫裡沒有能用的指型時，那個和弦是 null�
   const vs=C.voiceProgression(onlyMaj,()=>1,C.buildChords({ch:['I','vi']},'G'),5,seeded(1));
   assert.ok(vs[0]);assert.equal(vs[1],null);
 });
+
+test('回歸：低把位用得到開放弦和弦（F 在第 1 格時，Am 用開放弦，不跳到第 5 格）',()=>{
+  const F={frets:[1,3,3,2,1,1],root:0,center:C.centerOf([1,3,3,2,1,1])};
+  const v=C.pickVoicingFrom(C.BUILTIN,()=>1,{pc:9,q:'m'},{anchor:F.center,prev:F},null,seeded(3));
+  assert.ok(Math.abs(v.center-F.center)<=1.5,'Am 在 '+v.frets);
+});
+
+// E 大調不在內：C♯m 在低把位沒有任何指型（最低第 4–6 格），由「挑庫裡能做到最近的把位」那個測試把關。
+test('開放弦友善的調（C G D A）在低把位：整組指型都在第一個和弦 3 格內',()=>{
+  const rand=seeded(13);
+  for(const ch of [['I','V','vi','IV'],['I','IV','V'],['vi','IV','I','V'],['I','vi','IV','V']])
+    for(const k of ['C','G','D','A'])for(let t=0;t<10;t++){
+      const vs=C.voiceProgression(C.BUILTIN,()=>1,C.buildChords({ch},k),1.5,rand);
+      for(const v of vs)assert.ok(Math.abs(v.center-vs.anchor)<=3,`${ch.join(' ')} in ${k}: ${vs.map(v=>v.frets.join(',')).join(' | ')}`);
+    }
+});

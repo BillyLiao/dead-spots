@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+### Added
+- 26 個開放弦常用和弦：C、A、G、E、D、Am、Em、Dm、A7、E7、D7、G7、C7、B7、Am7、Dm7、Em7（另一種按法）、Cmaj7、Fmaj7、Gmaj7、Dsus2、Dsus4、Asus4、Esus4、E5、A5。補上低把位的缺口：例如 F 大調在第 1 格時，Am 改用開放弦，不再跳到第 5 格。
+
 ## [0.3.0] - 2026-10-06
 
 ### Added
