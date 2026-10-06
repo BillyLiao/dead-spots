@@ -40,12 +40,12 @@ hotfix/*  ── 線上 bug：從 main 開 → merge 到 main（打 tag）＋ me
 
 **只有 merge 到 main 才會上線。** develop 上的東西線上看不到。要先看效果，直接用瀏覽器開本機的 `index.html`。
 
-**發 release 後要確認有部署成功。** v0.2.0 推上 main 之後，GitHub Pages 沒有自動觸發部署（原因不明）。檢查方式和手動重新部署：
+**部署流程**（`.github/workflows/deploy.yml`，v0.4.0 起）：push 到 main → 跑測試 → 通過才把 `index.html`、`core.js`、icon 上傳到 GitHub Pages → 檢查線上讀得到。測試失敗就不會部署，線上維持上一版。
 
-```sh
-gh api repos/BillyLiao/dead-spots/pages/builds/latest -q '.status+" "+.commit[0:7]'   # commit 要是 main 最新的
-gh api -X POST repos/BillyLiao/dead-spots/pages/builds                                # 沒有的話手動觸發
-```
+- 結果在 repo 的 Actions 分頁（`deploy` 這個 workflow）。也可以在那裡按「Run workflow」手動重新部署。
+- **新增網站檔案時**，要加進 `deploy.yml` 的 `cp ... _site/` 那一行。`test/page.test.js` 會檢查 `index.html` 引用到的檔案有沒有漏列。
+- 其他分支和 PR 的測試在 `test.yml`。
+- 之前的「從分支部署」模式在 v0.2.0、v0.2.1 都沒有自動觸發，所以換掉了。
 
 ---
 
@@ -137,6 +137,7 @@ npm test          # 等於 node --test test/*.test.js，不需要 npm install
 | 名稱 Dead Spots | dead spot 原本是琴頸上延音特別短的音，拿來比喻盲區。撞名檢查過：Rootless（已有 iOS app）、Chord Dice（多個 GitHub repo）都撞名；Blind Fret 會被誤會成視障用的 app |
 | Icon「斷掉的延音」 | 第一輪（和弦圖、骰子、霧、劃掉的格子）全部否決；第二輪定案，原則是要符合 dead spot 的意思＋ Zine 配色 |
 | 先存 localStorage，不做登入 | 先求能用；跨裝置的需求還不確定 |
+| 用 GitHub Actions 部署（測試通過才上線） | 「從分支部署」連續兩次沒有自動觸發；而且這樣壞掉的版本不會上線 |
 | GitHub Pages 是主要版本 | 兩個版本的資料不互通，同時用會讓指型散在兩邊 |
 | 同指型不同把位算同一個 | 網站只記級數、不記音名，可移動指型移到哪都一樣；重複會讓盲區練習重複出題、擲骰子權重加倍 |
 | 合併時留自訂、隱藏內建 | 自訂的有你的名稱和筆記；內建資料不能改，只能用旗標隱藏 |
