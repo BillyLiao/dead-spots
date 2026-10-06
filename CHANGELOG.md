@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-06
+
 ### Added
 - 26 個開放弦常用和弦：C、A、G、E、D、Am、Em、Dm、A7、E7、D7、G7、C7、B7、Am7、Dm7、Em7（另一種按法）、Cmaj7、Fmaj7、Gmaj7、Dsus2、Dsus4、Asus4、Esus4、E5、A5。補上低把位的缺口：例如 F 大調在第 1 格時，Am 改用開放弦，不再跳到第 5 格。
 
@@ -102,7 +104,8 @@
 - 先在 Claude artifact 上做出灰藍練習簿風格的版本（資料存在 claude.ai 帳號）。
 - 後來改成 Zine 風格、改名 Dead Spots，才搬到 GitHub。
 
-[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.3.0...develop
+[Unreleased]: https://github.com/BillyLiao/dead-spots/compare/v0.4.0...develop
+[0.4.0]: https://github.com/BillyLiao/dead-spots/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/BillyLiao/dead-spots/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/BillyLiao/dead-spots/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/BillyLiao/dead-spots/compare/v0.1.3...v0.2.0
