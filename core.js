@@ -146,21 +146,56 @@ function buildChords(prog,key){
     return{...c,L,pc,name,v:null};
   });
 }
-// 從 shapes 裡挑一個能彈 c 的指型並放到格位上。prioFn(shape) 回傳優先權（盲區 6、自訂 3、內建 1）。
-function pickVoicingFrom(shapes,prioFn,c,center,excludeId,rand=Math.random){
-  const chain=COMPAT[c.q]||[c.q],cands=[];
+// 兩個指型之間的聲部移動：低音（實際最低音）和最高音各移動幾個半音。
+function voiceMove(a,b){
+  const p=f=>f.map((x,i)=>x<0?null:OPEN[i]+x).filter(x=>x!=null);
+  const pa=p(a),pb=p(b);if(!pa.length||!pb.length)return 0;
+  return Math.abs(Math.min(...pa)-Math.min(...pb))+Math.abs(Math.max(...pa)-Math.max(...pb));
+}
+// 從 shapes 裡挑一個能彈和弦 c 的指型，並決定放在哪一格。
+// ctx.anchor：這組和弦的把位（格數中心）；ctx.prev：前一個和弦的指型（可省略）。也可以直接傳數字當 anchor。
+// 規則：
+// 1. 列出所有「指型 × 可放的把位」。換指型時（excludeId）有別的選擇就先排除目前這個。
+// 2. 性質完全符合的指型如果離把位不遠（比最近的候選多 3 格以內），只用完全符合的。
+// 3. 只留離把位最近的那一圈（最近距離 + 1.5 格內），讓整組和弦待在同一個把位。
+// 4. 圈內依 優先權（盲區 6、自訂 3、內建 1）× 性質符合度 × 轉位需求 × 聲部移動少 加權抽一個。
+function pickVoicingFrom(shapes,prioFn,c,ctx,excludeId,rand=Math.random){
+  if(typeof ctx==='number')ctx={anchor:ctx};
+  const anchor=ctx.anchor,prev=ctx.prev||null;
+  const chain=COMPAT[c.q]||[c.q];
+  let all=[];
   for(const sh of shapes){
-    const q=shapeQ(sh),idx=chain.indexOf(q);if(idx<0)continue;
-    const pl=placements(sh,c.pc);if(!pl.length)continue;
-    let best=pl[0],bd=1e9;for(const d of pl){const dist=Math.abs(centerOf(shifted(sh.frets,d))-center);if(dist<bd){bd=dist;best=d;}}
-    let w=prioFn(sh)*(idx===0?3:1/(1+idx))/(1+bd/4);
-    if(c.inv){const r=rels(sh.frets,sh.root);if(invCode(r[bassIdx(sh.frets)])===c.inv)w*=5;else w*=0.4;}
-    if(sh.id===excludeId)w*=0.03;
-    cands.push({sh,d:best,w});
+    const idx=chain.indexOf(shapeQ(sh));if(idx<0)continue;
+    for(const d of placements(sh,c.pc)){
+      const f=shifted(sh.frets,d),center=centerOf(f);
+      all.push({sh,f,idx,center,dist:Math.abs(center-anchor)});
+    }
   }
-  if(!cands.length)return null;
-  const p=weighted(cands,rand),f=shifted(p.sh.frets,p.d);
-  return{id:p.sh.id,frets:f,root:p.sh.root,q:shapeQ(p.sh),center:centerOf(f)};
+  if(excludeId&&all.some(x=>x.sh.id!==excludeId))all=all.filter(x=>x.sh.id!==excludeId);
+  if(!all.length)return null;
+  const minDist=xs=>Math.min(...xs.map(x=>x.dist));
+  const exact=all.filter(x=>x.idx===0);
+  let pool=exact.length&&minDist(exact)<=minDist(all)+3?exact:all;
+  const near=minDist(pool);pool=pool.filter(x=>x.dist<=near+1.5);
+  for(const x of pool){
+    let w=prioFn(x.sh)*(x.idx===0?3:1/(1+x.idx))/(1+x.dist/2);
+    if(c.inv){const r=rels(x.sh.frets,x.sh.root);w*=invCode(r[bassIdx(x.sh.frets)])===c.inv?5:0.4;}
+    if(prev)w/=1+voiceMove(prev.frets,x.f)/3;
+    x.w=w;
+  }
+  const p=weighted(pool,rand);
+  return{id:p.sh.id,frets:p.f,root:p.sh.root,q:shapeQ(p.sh),center:p.center};
+}
+// 幫一整組和弦挑指型：第一個和弦落在 startAnchor 附近並決定這組的把位，之後每個和弦都待在這個把位、參考前一個和弦的聲部。
+function voiceProgression(shapes,prioFn,chords,startAnchor,rand=Math.random){
+  let anchor=startAnchor,prev=null;const out=[];
+  chords.forEach((c,i)=>{
+    const v=pickVoicingFrom(shapes,prioFn,c,{anchor,prev},null,rand);
+    if(v){if(!prev)anchor=v.center;prev=v;}
+    out.push(v);
+  });
+  out.anchor=anchor;
+  return out;
 }
 // 盲區練習的出題權重。recentIndex：最近出過的第幾題（-1 = 沒出過）。
 function drillWeightOf(prio,n,miss,recentIndex){
@@ -230,5 +265,5 @@ function unhideCovered(flags,deleted,builtins){
 
 if(typeof module!=='undefined')module.exports={OPEN,LETTERS,NAT,PCNAME,mod,spell,spellSimple,parseKey,QD,qLabel,QTABLE,QUAL_OPTIONS,rootMidi,rels,relSet,detectQ,fam,degLabel,bassIdx,topIdx,invName,invCode,strNo,fretted,hasOpen,centerOf,placements,shifted,noteNameRel,
   BUILTIN,STYLES,STYLE_BPM,PROGS,MAJOR_KEYS,MINOR_KEYS,parseRoman,prettyRn,COMPAT,
-  shapeQ,weighted,genBpm,pickKey,buildChords,pickVoicingFrom,drillWeightOf,
+  shapeQ,weighted,genBpm,pickKey,buildChords,pickVoicingFrom,voiceMove,voiceProgression,drillWeightOf,
   shapeKey,sameShape,findDuplicate,duplicateGroups,pickKeeper,mergeShapeData,mergeStats,applyMerge,unhideCovered};
